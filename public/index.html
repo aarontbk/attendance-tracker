@@ -65,7 +65,7 @@
         <div class="relative bg-white w-full max-w-sm rounded-2xl shadow-2xl p-6 flex flex-col border border-slate-200">
             <div class="flex justify-between items-center mb-4">
                 <div>
-                    <h3 id="modalTitle" class="text-lg font-bold text-slate-800">Student Name</h3>
+                    <h3 id="modalTitle" class="text-lg font-bold text-slate-800">Student Status</h3>
                     <p class="text-xs font-semibold text-slate-400 uppercase">Missing Reason</p>
                 </div>
                 <button onclick="closeReasonModal()" class="text-slate-400 hover:text-slate-600 bg-slate-100 p-1.5 rounded-lg"><i data-lucide="x" class="w-4 h-4"></i></button>
@@ -201,7 +201,10 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        let localStudents = []; // Now loaded securely from server
+        // --- PRIVACY TOGGLE ---
+        const SHOW_NAMES = false; // Toggle to 'true' to show names in tooltips and reports again
+
+        let localStudents = []; 
         let state = {};
         let socket = null;
         let matrixInterval = null;
@@ -217,7 +220,6 @@
             const savedPwd = sessionStorage.getItem('aram_pwd');
             if (savedPwd) {
                 passwordInput.value = savedPwd;
-                // Trigger form submission securely
                 loginForm.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
             } else {
                 loginOverlay.classList.remove('hidden'); 
@@ -230,7 +232,6 @@
             const pwd = passwordInput.value;
             
             try {
-                // Securely request data from server using password
                 const res = await fetch('/api/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -241,11 +242,8 @@
                 
                 if (data.success) {
                     sessionStorage.setItem('aram_pwd', pwd);
-                    localStudents = data.students; // Only get names on success
-                    
-                    // Initialize placeholder state locally until socket syncs
+                    localStudents = data.students;
                     localStudents.forEach(s => { state[s.id] = { present: false, reason: '' }; });
-                    
                     showApp();
                 } else {
                     loginError.classList.remove('hidden');
@@ -370,7 +368,7 @@
         function openReasonModal(id) {
             activeModalId = id;
             const student = localStudents.find(s => s.id === id);
-            document.getElementById('modalTitle').innerText = `${student.name}`;
+            document.getElementById('modalTitle').innerText = SHOW_NAMES ? student.name : `Student ${student.id}`;
             document.getElementById('reasonInput').value = state[id].reason || '';
             document.getElementById('reasonModal').classList.remove('hidden');
             setTimeout(() => document.getElementById('reasonInput').focus(), 50);
@@ -397,10 +395,13 @@
                 cell.onclick = () => handleCellClick(student.id);
                 cell.innerText = student.id;
                 
-                const tooltip = document.createElement('div');
-                tooltip.className = "absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-slate-800 text-white text-xs px-3 py-2 rounded-lg whitespace-nowrap z-10 shadow-lg font-medium pointer-events-none";
-                tooltip.innerText = student.name;
-                cell.appendChild(tooltip);
+                // Show tooltip only if SHOW_NAMES is true
+                if (SHOW_NAMES) {
+                    const tooltip = document.createElement('div');
+                    tooltip.className = "absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-slate-800 text-white text-xs px-3 py-2 rounded-lg whitespace-nowrap z-10 shadow-lg font-medium pointer-events-none";
+                    tooltip.innerText = student.name;
+                    cell.appendChild(tooltip);
+                }
                 
                 if (student.group === 'bear') bearGrid.appendChild(cell);
                 else gummyGrid.appendChild(cell);
@@ -439,23 +440,29 @@
             const outBear = document.getElementById('outputBear');
             const outGummy = document.getElementById('outputGummy');
 
+            const getList = (arr) => {
+                if (arr.length === 0) return "כולם פה";
+                return arr.map(s => {
+                    const namePart = SHOW_NAMES ? ` ${s.name}` : "";
+                    return `${s.id}${namePart} - ${state[s.id].reason || 'לא ידוע'}`;
+                }).join('\n');
+            };
+
             if (format === 'combined') {
                 combWrap.classList.replace('hidden', 'flex'); sepWrap.classList.replace('flex', 'hidden');
-                if (missing.length === 0) { outTxt.value = "כולם פה"; return; }
-                outTxt.value = missing.map(s => `${s.id} - ${state[s.id].reason || 'לא ידוע'}`).join('\n');
+                outTxt.value = getList(missing);
             } else {
                 combWrap.classList.replace('flex', 'hidden'); sepWrap.classList.replace('hidden', 'flex');
                 const bears = missing.filter(s => s.group === 'bear');
                 const gummies = missing.filter(s => s.group === 'gummy');
-                outBear.value = bears.length === 0 ? "כולם פה" : bears.map(s => `${s.id} - ${state[s.id].reason || 'לא ידוע'}`).join('\n');
-                outGummy.value = gummies.length === 0 ? "כולם פה" : gummies.map(s => `${s.id} - ${state[s.id].reason || 'לא ידוע'}`).join('\n');
+                outBear.value = getList(bears);
+                outGummy.value = getList(gummies);
             }
         };
 
         window.copyToClipboard = (id) => {
             const el = document.getElementById(id);
             if (!el) return;
-            
             el.select();
             el.setSelectionRange(0, 99999); 
             try {
