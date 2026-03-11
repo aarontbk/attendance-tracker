@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Tracker | Real-Time</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📋</text></svg>">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            background-image: url('background.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        @keyframes slideUp { from { transform: translate(-50%, 100%); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+        .toast-animate { animation: slideUp 0.3s ease-out forwards; }
+        
+        @keyframes pulse-fast { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .animate-pulse-fast { animation: pulse-fast 1s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+
+        @keyframes flash-red { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.7; transform: scale(1.01); color: #991b1b; } }
+        .flashing-warning { animation: flash-red 0.8s infinite ease-in-out; }
+        
+        .student-cell { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .student-cell:active { transform: scale(0.9); }
+
+        #matrixCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background-color: #0f172a; }
+        .timer-font { font-family: 'JetBrains Mono', monospace; }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800 p-4 sm:p-6 lg:p-8 flex flex-col items-center relative">
+
+    <!-- Password Overlay -->
+    <div id="loginOverlay" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <canvas id="matrixCanvas"></canvas>
+        <div class="relative bg-white/90 backdrop-blur-lg w-full max-w-md rounded-2xl shadow-2xl p-8 flex flex-col items-center text-center border border-white/20">
+            <div class="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mb-6 shadow-inner">
+                <i data-lucide="lock" class="w-8 h-8"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-slate-800 mb-2">Protected Access</h2>
+            <p class="text-slate-500 mb-8 text-sm">Please enter the password to access the Attendance Tracker.</p>
+            <form id="loginForm" class="w-full space-y-4">
+                <input type="password" id="passwordInput" placeholder="Enter password..." class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-center font-medium">
+                <button type="submit" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-colors shadow-lg">Login</button>
+                <p id="loginError" class="text-red-500 text-xs font-medium hidden">Incorrect password. Please try again.</p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Reason Modal (Popup) -->
+    <div id="reasonModal" class="fixed inset-0 z-[110] flex items-center justify-center p-4 hidden">
+        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeReasonModal()"></div>
+        <div class="relative bg-white w-full max-w-sm rounded-2xl shadow-2xl p-6 flex flex-col border border-slate-200">
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <h3 id="modalTitle" class="text-lg font-bold text-slate-800">Student Name</h3>
+                    <p class="text-xs font-semibold text-slate-400 uppercase">Missing Reason</p>
+                </div>
+                <button onclick="closeReasonModal()" class="text-slate-400 hover:text-slate-600 bg-slate-100 p-1.5 rounded-lg"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <input type="text" id="reasonInput" placeholder="Why are they absent?" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-500 outline-none mb-4 font-medium" onkeypress="if(event.key === 'Enter') saveReason()">
+            <button onclick="saveReason()" class="w-full py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-bold transition-colors shadow-md">Confirm Missing</button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main id="appContent" class="w-full max-w-5xl bg-white rounded-2xl shadow-xl flex flex-col relative hidden">
+        <header class="bg-indigo-600 text-white p-6 sm:p-8 rounded-t-2xl">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <div class="flex items-center gap-3">
+                        <h1 class="text-2xl sm:text-3xl font-bold flex items-center gap-2">
+                            <i data-lucide="users" class="w-8 h-8"></i>
+                            Attendance Tracker
+                        </h1>
+                        <div id="statusBadge" class="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500 text-white text-xs font-bold rounded-full uppercase tracking-wide">
+                            <span class="w-2 h-2 bg-white rounded-full animate-pulse-fast"></span> Live
+                        </div>
+                        
+                        <div class="flex items-center gap-2 px-3 py-1.5 bg-white/20 border border-white/30 rounded-xl shadow-inner">
+                            <i data-lucide="clock" class="w-4 h-4 text-indigo-200"></i>
+                            <span id="countdownText" class="timer-font text-xl font-bold tracking-tighter text-white">10:00</span>
+                        </div>
+                    </div>
+                    <p class="text-indigo-100 mt-2 text-sm font-medium">Click to toggle: <span class="bg-red-500 px-2 py-0.5 rounded text-[10px] font-bold mx-1 text-white border border-red-400">Red = Missing</span> ➔ <span class="bg-emerald-500 px-2 py-0.5 rounded text-[10px] font-bold mx-1 text-white border border-emerald-400">Green = Present</span></p>
+                </div>
+                <div class="flex gap-4 bg-indigo-700/50 p-3 rounded-lg w-full sm:w-auto">
+                    <div class="text-center px-4 border-r border-indigo-400/30">
+                        <div class="text-xs text-indigo-200 font-semibold uppercase tracking-wider">Present</div>
+                        <div id="presentCount" class="text-2xl font-bold">0</div>
+                    </div>
+                    <div class="text-center px-4">
+                        <div class="text-xs text-indigo-200 font-semibold uppercase tracking-wider">Missing</div>
+                        <div id="missingCount" class="text-2xl font-bold text-red-300">0</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="p-6 sm:p-8 flex flex-col lg:flex-row gap-8">
+            <!-- Left Side: Grids -->
+            <div class="flex-1 flex flex-col gap-8">
+                
+                <div class="w-full bg-red-50 border-2 border-red-500 rounded-xl p-4 flex items-center justify-center gap-3 flashing-warning shadow-lg">
+                    <i data-lucide="alert-triangle" class="w-6 h-6 text-red-600"></i>
+                    <p class="font-black text-red-700 text-center text-sm sm:text-lg tracking-tight uppercase">Fill only after connecting to Teams meeting!</p>
+                    <i data-lucide="alert-triangle" class="w-6 h-6 text-red-600"></i>
+                </div>
+
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <h2 class="text-xl font-bold text-slate-700">Student Roster</h2>
+                    <div class="flex gap-2">
+                        <button onclick="markAll(true)" id="btnMarkAll" disabled class="text-sm px-4 py-2 bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 disabled:opacity-50 text-slate-700 rounded-md font-bold transition-all flex items-center gap-2">
+                            <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i>
+                            All Present
+                        </button>
+                        <button onclick="markAll(false)" id="btnResetAll" disabled class="text-sm px-4 py-2 bg-slate-100 hover:bg-red-50 hover:text-red-600 disabled:opacity-50 text-slate-700 rounded-md font-bold transition-all flex items-center gap-2">
+                            <i data-lucide="alert-circle" class="w-4 h-4 text-red-600"></i>
+                            Reset All
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="gridContainer" class="pointer-events-none opacity-50 transition-opacity duration-300 flex flex-col gap-8">
+                    <div>
+                        <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                            <i data-lucide="paw-print" class="w-4 h-4"></i> Bear Group
+                        </h3>
+                        <div id="bearGrid" class="flex flex-wrap gap-3"></div>
+                    </div>
+                    <hr class="border-slate-100">
+                    <div>
+                        <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                            <i data-lucide="candy" class="w-4 h-4"></i> Gummy Group
+                        </h3>
+                        <div id="gummyGrid" class="flex flex-wrap gap-3"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: Output -->
+            <div class="w-full lg:w-80 flex flex-col gap-6">
+                <div class="bg-slate-50 rounded-xl border border-slate-200 p-5 flex flex-col sticky top-6">
+                    <h2 class="text-lg font-semibold text-slate-700 mb-2 flex items-center gap-2">
+                        <i data-lucide="file-text" class="w-5 h-5 text-slate-400"></i>
+                        Missing List to Copy
+                    </h2>
+                    <div class="flex gap-4 mb-4">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="outputFormat" value="combined" checked onchange="generateReport()" class="text-indigo-600 focus:ring-indigo-500">
+                            <span class="text-sm font-medium text-slate-700">Combined</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="outputFormat" value="separate" onchange="generateReport()" class="text-indigo-600 focus:ring-indigo-500">
+                            <span class="text-sm font-medium text-slate-700">Separate</span>
+                        </label>
+                    </div>
+
+                    <div id="combinedOutputWrapper" class="flex flex-col mb-4">
+                        <textarea id="outputText" readonly class="w-full min-h-[250px] p-4 bg-white border border-slate-200 rounded-lg text-slate-700 font-mono text-sm resize-none mb-4 focus:outline-none">Waiting...</textarea>
+                        <button onclick="copyToClipboard('outputText')" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold flex justify-center items-center gap-2 shadow-sm"><i data-lucide="copy" class="w-5 h-5"></i> Copy List</button>
+                    </div>
+
+                    <div id="separateOutputWrapper" class="hidden flex-col gap-4 mb-4">
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-xs font-semibold text-slate-500">BEAR</span>
+                                <button onclick="copyToClipboard('outputBear')" class="text-xs text-indigo-600 font-medium">Copy</button>
+                            </div>
+                            <textarea id="outputBear" readonly class="w-full min-h-[120px] p-3 bg-white border border-slate-200 rounded-lg text-slate-700 font-mono text-sm resize-none focus:outline-none"></textarea>
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-xs font-semibold text-slate-500">GUMMY</span>
+                                <button onclick="copyToClipboard('outputGummy')" class="text-xs text-indigo-600 font-medium">Copy</button>
+                            </div>
+                            <textarea id="outputGummy" readonly class="w-full min-h-[120px] p-3 bg-white border border-slate-200 rounded-lg text-slate-700 font-mono text-sm resize-none focus:outline-none"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="toast" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded-full shadow-lg font-medium flex items-center gap-2 hidden z-[200]">
+        <i data-lucide="info" class="w-5 h-5 text-indigo-400" id="toastIcon"></i>
+        <span id="toastMessage"></span>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        let localStudents = []; // Now loaded securely from server
+        let state = {};
+        let socket = null;
+        let matrixInterval = null;
+        let activeModalId = null;
+
+        const loginOverlay = document.getElementById('loginOverlay');
+        const appContent = document.getElementById('appContent');
+        const loginForm = document.getElementById('loginForm');
+        const passwordInput = document.getElementById('passwordInput');
+        const loginError = document.getElementById('loginError');
+
+        function checkAuth() {
+            const savedPwd = sessionStorage.getItem('aram_pwd');
+            if (savedPwd) {
+                passwordInput.value = savedPwd;
+                // Trigger form submission securely
+                loginForm.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+            } else {
+                loginOverlay.classList.remove('hidden'); 
+                initMatrix(); 
+            }
+        }
+
+        loginForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const pwd = passwordInput.value;
+            
+            try {
+                // Securely request data from server using password
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: pwd })
+                });
+                
+                const data = await res.json();
+                
+                if (data.success) {
+                    sessionStorage.setItem('aram_pwd', pwd);
+                    localStudents = data.students; // Only get names on success
+                    
+                    // Initialize placeholder state locally until socket syncs
+                    localStudents.forEach(s => { state[s.id] = { present: false, reason: '' }; });
+                    
+                    showApp();
+                } else {
+                    loginError.classList.remove('hidden');
+                    passwordInput.value = '';
+                    passwordInput.focus();
+                    sessionStorage.removeItem('aram_pwd');
+                }
+            } catch (err) {
+                showToast("Connection Error", false);
+            }
+        };
+
+        function showApp() {
+            loginOverlay.classList.add('hidden');
+            appContent.classList.remove('hidden');
+            if(matrixInterval) clearInterval(matrixInterval);
+            initSocket();
+            initGrids();
+        }
+
+        function initMatrix() {
+            const canvas = document.getElementById('matrixCanvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZאבגדהוזחטיכלמנסעפצקרשת@#$%^&*';
+            const fontSize = 16;
+            const columns = canvas.width / fontSize;
+            const drops = Array(Math.floor(columns)).fill(1);
+            function draw() {
+                ctx.fillStyle = 'rgba(15, 23, 42, 0.08)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#10b981';
+                ctx.font = fontSize + 'px monospace';
+                for(let i = 0; i < drops.length; i++) {
+                    const text = chars[Math.floor(Math.random() * chars.length)];
+                    ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                    if(drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+                    drops[i]++;
+                }
+            }
+            matrixInterval = setInterval(draw, 35);
+        }
+
+        const bearGrid = document.getElementById('bearGrid');
+        const gummyGrid = document.getElementById('gummyGrid');
+        const presentCountEl = document.getElementById('presentCount');
+        const missingCountEl = document.getElementById('missingCount');
+        const countdownText = document.getElementById('countdownText');
+
+        function formatTime(seconds) {
+            const m = Math.floor(seconds / 60);
+            const s = seconds % 60;
+            return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        }
+
+        function initSocket() {
+            if (socket) return;
+            socket = io();
+            
+            socket.on('connect', () => {
+                document.getElementById('gridContainer').classList.remove('pointer-events-none', 'opacity-50');
+                document.getElementById('btnMarkAll').disabled = false;
+                document.getElementById('btnResetAll').disabled = false;
+            });
+            
+            socket.on('stateUpdate', (serverState) => {
+                for (const [id, data] of Object.entries(serverState)) { 
+                    if (state[id]) {
+                        state[id].present = data.present;
+                        state[id].reason = data.reason;
+                    }
+                }
+                updateUI();
+            });
+
+            socket.on('timerUpdate', (seconds) => {
+                countdownText.innerText = formatTime(seconds);
+                if (seconds <= 30) {
+                    countdownText.parentElement.classList.add('bg-red-500');
+                    countdownText.parentElement.classList.remove('bg-white/20');
+                } else {
+                    countdownText.parentElement.classList.remove('bg-red-500');
+                    countdownText.parentElement.classList.add('bg-white/20');
+                }
+            });
+
+            socket.on('systemToast', (msg) => {
+                showToast(msg, true);
+            });
+        }
+
+        window.handleCellClick = (id) => {
+            const currentState = state[id].present;
+            if (currentState === false) {
+                updateStudentState(id, true, '');
+            } else if (currentState === true) {
+                openReasonModal(id);
+            }
+        };
+
+        function updateStudentState(id, isPresent, reasonText) {
+            if (state[id]) {
+                state[id].present = isPresent;
+                state[id].reason = reasonText || '';
+            }
+            updateUI(); 
+            if (socket) socket.emit('updateStudent', { id: id, present: isPresent, reason: reasonText || '' });
+        }
+
+        window.markAll = (markAsPresent) => {
+            localStudents.forEach(s => {
+                if (state[s.id]) {
+                    state[s.id].present = markAsPresent ? true : false;
+                    state[s.id].reason = '';
+                }
+            });
+            updateUI();
+            if (socket) socket.emit('markAll', markAsPresent);
+        };
+
+        function openReasonModal(id) {
+            activeModalId = id;
+            const student = localStudents.find(s => s.id === id);
+            document.getElementById('modalTitle').innerText = `${student.name}`;
+            document.getElementById('reasonInput').value = state[id].reason || '';
+            document.getElementById('reasonModal').classList.remove('hidden');
+            setTimeout(() => document.getElementById('reasonInput').focus(), 50);
+        }
+
+        window.closeReasonModal = () => {
+            document.getElementById('reasonModal').classList.add('hidden');
+            activeModalId = null;
+        };
+
+        window.saveReason = () => {
+            if (!activeModalId) return;
+            const reason = document.getElementById('reasonInput').value;
+            updateStudentState(activeModalId, false, reason);
+            closeReasonModal();
+        };
+
+        function initGrids() {
+            bearGrid.innerHTML = ''; gummyGrid.innerHTML = '';
+            localStudents.forEach(student => {
+                const cell = document.createElement('div');
+                cell.id = `cell-${student.id}`;
+                cell.className = `student-cell relative group w-12 h-12 flex items-center justify-center rounded-xl border-2 font-bold text-lg cursor-pointer shadow-sm select-none bg-red-500 border-red-500 text-white`;
+                cell.onclick = () => handleCellClick(student.id);
+                cell.innerText = student.id;
+                
+                const tooltip = document.createElement('div');
+                tooltip.className = "absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-slate-800 text-white text-xs px-3 py-2 rounded-lg whitespace-nowrap z-10 shadow-lg font-medium pointer-events-none";
+                tooltip.innerText = student.name;
+                cell.appendChild(tooltip);
+                
+                if (student.group === 'bear') bearGrid.appendChild(cell);
+                else gummyGrid.appendChild(cell);
+            });
+            updateUI();
+        }
+
+        function updateUI() {
+            let presentCount = 0; 
+            let missingCount = 0;
+            localStudents.forEach(student => {
+                const isPresent = state[student.id].present;
+                const cell = document.getElementById(`cell-${student.id}`);
+                if (cell) {
+                    if (isPresent === true) {
+                        cell.className = `student-cell relative group w-12 h-12 flex items-center justify-center rounded-xl border-2 font-bold text-lg cursor-pointer shadow-sm select-none bg-emerald-500 border-emerald-500 text-white`;
+                        presentCount++;
+                    } else { 
+                        cell.className = `student-cell relative group w-12 h-12 flex items-center justify-center rounded-xl border-2 font-bold text-lg cursor-pointer shadow-sm select-none bg-red-500 border-red-500 text-white`;
+                        missingCount++;
+                    }
+                }
+            });
+            presentCountEl.innerText = presentCount; 
+            missingCountEl.innerText = missingCount;
+            generateReport();
+            lucide.createIcons();
+        }
+
+        window.generateReport = () => {
+            const missing = localStudents.filter(s => state[s.id].present === false);
+            const format = document.querySelector('input[name="outputFormat"]:checked')?.value || 'combined';
+            const combWrap = document.getElementById('combinedOutputWrapper');
+            const sepWrap = document.getElementById('separateOutputWrapper');
+            const outTxt = document.getElementById('outputText');
+            const outBear = document.getElementById('outputBear');
+            const outGummy = document.getElementById('outputGummy');
+
+            if (format === 'combined') {
+                combWrap.classList.replace('hidden', 'flex'); sepWrap.classList.replace('flex', 'hidden');
+                if (missing.length === 0) { outTxt.value = "כולם פה"; return; }
+                outTxt.value = missing.map(s => `${s.id} - ${state[s.id].reason || 'לא ידוע'}`).join('\n');
+            } else {
+                combWrap.classList.replace('flex', 'hidden'); sepWrap.classList.replace('hidden', 'flex');
+                const bears = missing.filter(s => s.group === 'bear');
+                const gummies = missing.filter(s => s.group === 'gummy');
+                outBear.value = bears.length === 0 ? "כולם פה" : bears.map(s => `${s.id} - ${state[s.id].reason || 'לא ידוע'}`).join('\n');
+                outGummy.value = gummies.length === 0 ? "כולם פה" : gummies.map(s => `${s.id} - ${state[s.id].reason || 'לא ידוע'}`).join('\n');
+            }
+        };
+
+        window.copyToClipboard = (id) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            
+            el.select();
+            el.setSelectionRange(0, 99999); 
+            try {
+                document.execCommand('copy') ? showToast("Copied!", true) : showToast("Copy failed", false);
+            } catch (err) {
+                showToast("Error copying", false);
+            }
+            window.getSelection().removeAllRanges();
+        };
+
+        function showToast(msg, isSuccess) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMessage').innerText = msg;
+            toast.classList.remove('hidden'); toast.classList.add('toast-animate');
+            setTimeout(() => { toast.classList.add('hidden'); toast.classList.remove('toast-animate'); }, 3000);
+        }
+
+        lucide.createIcons(); checkAuth();
+    </script>
+</body>
+</html>
