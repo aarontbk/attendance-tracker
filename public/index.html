@@ -7,22 +7,22 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📋</text></svg>">
     
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f8fafc;
-            background-image: url('background.jpg');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
         }
         
         ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .dark ::-webkit-scrollbar-thumb { background: #334155; }
 
         @keyframes slideUp { from { transform: translate(-50%, 100%); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
         .toast-animate { animation: slideUp 0.3s ease-out forwards; }
@@ -38,21 +38,33 @@
 
         #matrixCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background-color: #0f172a; }
         .timer-font { font-family: 'JetBrains Mono', monospace; }
+
+        .view-toggle-btn { transition: all 0.2s ease; }
+        .view-toggle-btn.active {
+            background-color: white;
+            color: #4f46e5;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .dark .view-toggle-btn.active {
+            background-color: #1e293b;
+            color: #818cf8;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
     </style>
 </head>
-<body class="min-h-screen text-slate-800 p-4 sm:p-6 lg:p-8 flex flex-col items-center relative">
+<body class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col items-center relative transition-colors duration-300">
 
     <!-- Password Overlay -->
     <div id="loginOverlay" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
         <canvas id="matrixCanvas"></canvas>
-        <div class="relative bg-white/90 backdrop-blur-lg w-full max-w-md rounded-2xl shadow-2xl p-8 flex flex-col items-center text-center border border-white/20">
-            <div class="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mb-6 shadow-inner">
+        <div class="relative bg-white/90 dark:bg-slate-900/90 backdrop-blur-lg w-full max-w-md rounded-2xl shadow-2xl p-8 flex flex-col items-center text-center border border-white/20 dark:border-slate-800">
+            <div class="w-16 h-16 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 rounded-full flex items-center justify-center mb-6 shadow-inner">
                 <i data-lucide="lock" class="w-8 h-8"></i>
             </div>
-            <h2 class="text-2xl font-bold text-slate-800 mb-2">Protected Access</h2>
-            <p class="text-slate-500 mb-8 text-sm">Please enter the password to access the Attendance Tracker.</p>
+            <h2 class="text-2xl font-bold text-slate-800 dark:text-white mb-2">Protected Access</h2>
+            <p class="text-slate-500 dark:text-slate-400 mb-8 text-sm">Please enter the password to access the Attendance Tracker.</p>
             <form id="loginForm" class="w-full space-y-4">
-                <input type="password" id="passwordInput" placeholder="Enter password..." class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-center font-medium">
+                <input type="password" id="passwordInput" placeholder="Enter password..." class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-center font-medium dark:text-white">
                 <button type="submit" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-colors shadow-lg">Login</button>
                 <p id="loginError" class="text-red-500 text-xs font-medium hidden">Incorrect password. Please try again.</p>
             </form>
@@ -62,131 +74,125 @@
     <!-- Reason Modal (Popup) -->
     <div id="reasonModal" class="fixed inset-0 z-[110] flex items-center justify-center p-4 hidden">
         <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeReasonModal()"></div>
-        <div class="relative bg-white w-full max-w-sm rounded-2xl shadow-2xl p-6 flex flex-col border border-slate-200">
+        <div class="relative bg-white dark:bg-slate-900 w-full max-w-sm rounded-2xl shadow-2xl p-6 flex flex-col border border-slate-200 dark:border-slate-800">
             <div class="flex justify-between items-center mb-4">
                 <div>
-                    <h3 id="modalTitle" class="text-lg font-bold text-slate-800">Student Status</h3>
-                    <p class="text-xs font-semibold text-slate-400 uppercase">Missing Reason</p>
+                    <h3 id="modalTitle" class="text-lg font-bold text-slate-800 dark:text-white">Student Status</h3>
+                    <p class="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase">Missing Reason</p>
                 </div>
-                <button onclick="closeReasonModal()" class="text-slate-400 hover:text-slate-600 bg-slate-100 p-1.5 rounded-lg"><i data-lucide="x" class="w-4 h-4"></i></button>
+                <button onclick="closeReasonModal()" class="text-slate-400 hover:text-slate-600 dark:bg-slate-800 p-1.5 rounded-lg transition-colors"><i data-lucide="x" class="w-4 h-4"></i></button>
             </div>
-            <input type="text" id="reasonInput" placeholder="Why are they absent?" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-500 outline-none mb-4 font-medium" onkeypress="if(event.key === 'Enter') saveReason()">
+            <input type="text" id="reasonInput" placeholder="Why are they absent?" class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-red-500 outline-none mb-4 font-medium dark:text-white" onkeypress="if(event.key === 'Enter') saveReason()">
             <button onclick="saveReason()" class="w-full py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-bold transition-colors shadow-md">Confirm Missing</button>
         </div>
     </div>
 
     <!-- Main Content -->
-    <main id="appContent" class="w-full max-w-5xl bg-white rounded-2xl shadow-xl flex flex-col relative hidden">
-        <header class="bg-indigo-600 text-white p-6 sm:p-8 rounded-t-2xl">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                    <div class="flex items-center gap-3">
-                        <h1 class="text-2xl sm:text-3xl font-bold flex items-center gap-2">
-                            <i data-lucide="users" class="w-8 h-8"></i>
+    <main id="appContent" class="w-full max-w-7xl flex flex-col relative hidden transition-colors duration-300">
+        <header class="bg-indigo-600 dark:bg-indigo-900 text-white p-6 sm:p-10 sm:rounded-b-3xl shadow-lg relative mb-8">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                <div class="flex-1">
+                    <div class="flex flex-wrap items-center gap-4">
+                        <h1 class="text-3xl sm:text-4xl font-bold flex items-center gap-3">
+                            <i data-lucide="users" class="w-10 h-10"></i>
                             Attendance Tracker
                         </h1>
-                        <div id="statusBadge" class="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500 text-white text-xs font-bold rounded-full uppercase tracking-wide">
+                        <div id="statusBadge" class="flex items-center gap-1.5 px-3 py-1 bg-emerald-500 text-white text-xs font-bold rounded-full uppercase tracking-wide shadow-sm">
                             <span class="w-2 h-2 bg-white rounded-full animate-pulse-fast"></span> Live
                         </div>
                         
-                        <div class="flex items-center gap-2 px-3 py-1.5 bg-white/20 border border-white/30 rounded-xl shadow-inner">
-                            <i data-lucide="clock" class="w-4 h-4 text-indigo-200"></i>
-                            <span id="countdownText" class="timer-font text-xl font-bold tracking-tighter text-white">10:00</span>
+                        <div class="flex items-center gap-2 px-4 py-2 bg-white/10 dark:bg-black/20 border border-white/20 rounded-2xl shadow-inner">
+                            <i data-lucide="clock" class="w-5 h-5 text-indigo-200"></i>
+                            <span id="countdownText" class="timer-font text-2xl font-bold tracking-tighter text-white">10:00</span>
                         </div>
                     </div>
-                    <p class="text-indigo-100 mt-2 text-sm font-medium">Click to toggle: <span class="bg-red-500 px-2 py-0.5 rounded text-[10px] font-bold mx-1 text-white border border-red-400">Red = Missing</span> ➔ <span class="bg-emerald-500 px-2 py-0.5 rounded text-[10px] font-bold mx-1 text-white border border-emerald-400">Green = Present</span></p>
+                    <p class="text-indigo-100 mt-4 text-sm font-medium opacity-90">Click to toggle: <span class="bg-red-500 px-2 py-0.5 rounded text-[10px] font-bold mx-1 text-white border border-red-400/30">Red = Missing</span> ➔ <span class="bg-emerald-500 px-2 py-0.5 rounded text-[10px] font-bold mx-1 text-white border border-emerald-400/30">Green = Present</span></p>
                 </div>
-                <div class="flex gap-4 bg-indigo-700/50 p-3 rounded-lg w-full sm:w-auto">
-                    <div class="text-center px-4 border-r border-indigo-400/30">
-                        <div class="text-xs text-indigo-200 font-semibold uppercase tracking-wider">Present</div>
-                        <div id="presentCount" class="text-2xl font-bold">0</div>
+                <div class="flex items-center gap-4 w-full md:w-auto">
+                    <div class="flex gap-4 bg-white/10 dark:bg-indigo-800/30 backdrop-blur-md p-4 rounded-2xl flex-1 md:flex-none border border-white/10 shadow-sm">
+                        <div class="text-center px-6 border-r border-white/20">
+                            <div class="text-[10px] text-indigo-200 font-bold uppercase tracking-widest mb-1">Present</div>
+                            <div id="presentCount" class="text-3xl font-black">0</div>
+                        </div>
+                        <div class="text-center px-6">
+                            <div class="text-[10px] text-indigo-200 font-bold uppercase tracking-widest mb-1">Missing</div>
+                            <div id="missingCount" class="text-3xl font-black">0</div>
+                        </div>
                     </div>
-                    <div class="text-center px-4">
-                        <div class="text-xs text-indigo-200 font-semibold uppercase tracking-wider">Missing</div>
-                        <div id="missingCount" class="text-2xl font-bold text-red-300">0</div>
-                    </div>
+                    <!-- Theme Toggle -->
+                    <button onclick="toggleTheme()" class="p-3 bg-white/10 dark:bg-slate-800 hover:bg-white/20 dark:hover:bg-slate-700 rounded-2xl transition-all border border-white/10 shadow-sm">
+                        <i id="themeIcon" data-lucide="moon" class="w-7 h-7 text-white"></i>
+                    </button>
                 </div>
             </div>
         </header>
 
-        <div class="p-6 sm:p-8 flex flex-col lg:flex-row gap-8">
+        <div class="px-4 sm:px-8 pb-12 flex flex-col lg:flex-row gap-10">
             <!-- Left Side: Grids -->
-            <div class="flex-1 flex flex-col gap-8">
+            <div class="flex-1 flex flex-col gap-10">
                 
-                <div class="w-full bg-red-50 border-2 border-red-500 rounded-xl p-4 flex items-center justify-center gap-3 flashing-warning shadow-lg">
-                    <i data-lucide="alert-triangle" class="w-6 h-6 text-red-600"></i>
-                    <p class="font-black text-red-700 text-center text-sm sm:text-lg tracking-tight uppercase">Fill only after connecting to Teams meeting!</p>
-                    <i data-lucide="alert-triangle" class="w-6 h-6 text-red-600"></i>
+                <div class="w-full bg-red-100/50 dark:bg-red-900/20 border-2 border-red-500/50 rounded-2xl p-5 flex items-center justify-center gap-4 flashing-warning shadow-md backdrop-blur-sm">
+                    <i data-lucide="alert-triangle" class="w-8 h-8 text-red-600 dark:text-red-400"></i>
+                    <p class="font-black text-red-700 dark:text-red-400 text-center text-sm sm:text-xl tracking-tight uppercase">Fill only after connecting to Teams meeting!</p>
+                    <i data-lucide="alert-triangle" class="w-8 h-8 text-red-600 dark:text-red-400"></i>
                 </div>
 
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <h2 class="text-xl font-bold text-slate-700">Student Roster</h2>
-                    <div class="flex gap-2">
-                        <button onclick="markAll(true)" id="btnMarkAll" disabled class="text-sm px-4 py-2 bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 disabled:opacity-50 text-slate-700 rounded-md font-bold transition-all flex items-center gap-2">
-                            <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i>
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+                    <div class="flex items-center gap-6">
+                        <h2 class="text-2xl font-black text-slate-700 dark:text-slate-300 tracking-tight uppercase">Student Roster</h2>
+                        <div class="flex bg-slate-200/50 dark:bg-slate-800 p-1.5 rounded-xl border border-slate-300/30 dark:border-slate-700 shadow-inner">
+                            <button id="modeBtnCombined" onclick="setViewMode('combined')" class="view-toggle-btn active flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-bold text-slate-500 dark:text-slate-400">
+                                <i data-lucide="list" class="w-4 h-4"></i> Combined
+                            </button>
+                            <button id="modeBtnSeparate" onclick="setViewMode('separate')" class="view-toggle-btn flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-bold text-slate-500 dark:text-slate-400">
+                                <i data-lucide="layout-grid" class="w-4 h-4"></i> Separate
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex gap-3">
+                        <button onclick="markAll(true)" id="btnMarkAll" disabled class="text-sm px-5 py-2.5 bg-white dark:bg-slate-800 hover:bg-emerald-500 hover:text-white dark:hover:bg-emerald-600 disabled:opacity-50 text-slate-700 dark:text-slate-300 rounded-xl font-bold transition-all border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-2">
+                            <i data-lucide="check-circle" class="w-5 h-5"></i>
                             All Present
                         </button>
-                        <button onclick="markAll(false)" id="btnResetAll" disabled class="text-sm px-4 py-2 bg-slate-100 hover:bg-red-50 hover:text-red-600 disabled:opacity-50 text-slate-700 rounded-md font-bold transition-all flex items-center gap-2">
-                            <i data-lucide="alert-circle" class="w-4 h-4 text-red-600"></i>
+                        <button onclick="markAll(false)" id="btnResetAll" disabled class="text-sm px-5 py-2.5 bg-white dark:bg-slate-800 hover:bg-red-500 hover:text-white dark:hover:bg-red-600 disabled:opacity-50 text-slate-700 dark:text-slate-300 rounded-xl font-bold transition-all border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-2">
+                            <i data-lucide="alert-circle" class="w-5 h-5"></i>
                             Reset All
                         </button>
                     </div>
                 </div>
                 
-                <div id="gridContainer" class="pointer-events-none opacity-50 transition-opacity duration-300 flex flex-col gap-8">
-                    <div>
-                        <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-                            <i data-lucide="paw-print" class="w-4 h-4"></i> Bear Group
-                        </h3>
-                        <div id="bearGrid" class="flex flex-wrap gap-3"></div>
-                    </div>
-                    <hr class="border-slate-100">
-                    <div>
-                        <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-                            <i data-lucide="candy" class="w-4 h-4"></i> Gummy Group
-                        </h3>
-                        <div id="gummyGrid" class="flex flex-wrap gap-3"></div>
-                    </div>
+                <div id="gridContainer" class="pointer-events-none opacity-50 transition-opacity duration-300">
+                    <!-- Grid Content -->
                 </div>
             </div>
 
             <!-- Right Side: Output -->
-            <div class="w-full lg:w-80 flex flex-col gap-6">
-                <div class="bg-slate-50 rounded-xl border border-slate-200 p-5 flex flex-col sticky top-6">
-                    <h2 class="text-lg font-semibold text-slate-700 mb-2 flex items-center gap-2">
-                        <i data-lucide="file-text" class="w-5 h-5 text-slate-400"></i>
-                        Missing List to Copy
+            <div class="w-full lg:w-96 flex flex-col gap-8">
+                <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 flex flex-col sticky top-8 shadow-xl">
+                    <h2 class="text-xl font-black text-slate-700 dark:text-slate-200 mb-6 flex items-center gap-3">
+                        <i data-lucide="file-text" class="w-6 h-6 text-indigo-500"></i>
+                        Missing List
                     </h2>
-                    <div class="flex gap-4 mb-4">
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="radio" name="outputFormat" value="combined" checked onchange="generateReport()" class="text-indigo-600 focus:ring-indigo-500">
-                            <span class="text-sm font-medium text-slate-700">Combined</span>
-                        </label>
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="radio" name="outputFormat" value="separate" onchange="generateReport()" class="text-indigo-600 focus:ring-indigo-500">
-                            <span class="text-sm font-medium text-slate-700">Separate</span>
-                        </label>
-                    </div>
 
                     <div id="combinedOutputWrapper" class="flex flex-col mb-4">
-                        <textarea id="outputText" readonly class="w-full min-h-[250px] p-4 bg-white border border-slate-200 rounded-lg text-slate-700 font-mono text-sm resize-none mb-4 focus:outline-none">Waiting...</textarea>
-                        <button onclick="copyToClipboard('outputText')" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold flex justify-center items-center gap-2 shadow-sm"><i data-lucide="copy" class="w-5 h-5"></i> Copy List</button>
+                        <textarea id="outputText" readonly class="w-full min-h-[300px] p-5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-700 dark:text-slate-200 font-mono text-sm resize-none mb-6 focus:outline-none transition-colors">Waiting...</textarea>
+                        <button onclick="copyToClipboard('outputText')" class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black flex justify-center items-center gap-3 shadow-lg transition-transform active:scale-95"><i data-lucide="copy" class="w-6 h-6"></i> Copy List</button>
                     </div>
 
-                    <div id="separateOutputWrapper" class="hidden flex-col gap-4 mb-4">
+                    <div id="separateOutputWrapper" class="hidden flex-col gap-6 mb-4">
                         <div>
-                            <div class="flex justify-between items-center mb-1">
-                                <span class="text-xs font-semibold text-slate-500">BEAR</span>
-                                <button onclick="copyToClipboard('outputBear')" class="text-xs text-indigo-600 font-medium">Copy</button>
+                            <div class="flex justify-between items-center mb-2 px-1">
+                                <span class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Bear Group</span>
+                                <button onclick="copyToClipboard('outputBear')" class="text-xs text-indigo-600 dark:text-indigo-400 font-bold hover:underline">Copy</button>
                             </div>
-                            <textarea id="outputBear" readonly class="w-full min-h-[120px] p-3 bg-white border border-slate-200 rounded-lg text-slate-700 font-mono text-sm resize-none focus:outline-none"></textarea>
+                            <textarea id="outputBear" readonly class="w-full min-h-[140px] p-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-700 dark:text-slate-200 font-mono text-xs resize-none focus:outline-none"></textarea>
                         </div>
                         <div>
-                            <div class="flex justify-between items-center mb-1">
-                                <span class="text-xs font-semibold text-slate-500">GUMMY</span>
-                                <button onclick="copyToClipboard('outputGummy')" class="text-xs text-indigo-600 font-medium">Copy</button>
+                            <div class="flex justify-between items-center mb-2 px-1">
+                                <span class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Gummy Group</span>
+                                <button onclick="copyToClipboard('outputGummy')" class="text-xs text-indigo-600 dark:text-indigo-400 font-bold hover:underline">Copy</button>
                             </div>
-                            <textarea id="outputGummy" readonly class="w-full min-h-[120px] p-3 bg-white border border-slate-200 rounded-lg text-slate-700 font-mono text-sm resize-none focus:outline-none"></textarea>
+                            <textarea id="outputGummy" readonly class="w-full min-h-[140px] p-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-700 dark:text-slate-200 font-mono text-xs resize-none focus:outline-none"></textarea>
                         </div>
                     </div>
                 </div>
@@ -194,15 +200,35 @@
         </div>
     </main>
 
-    <div id="toast" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded-full shadow-lg font-medium flex items-center gap-2 hidden z-[200]">
-        <i data-lucide="info" class="w-5 h-5 text-indigo-400" id="toastIcon"></i>
+    <div id="toast" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 px-8 py-4 rounded-3xl shadow-2xl font-bold flex items-center gap-3 hidden z-[200]">
+        <i data-lucide="info" class="w-6 h-6 text-indigo-400 dark:text-indigo-600" id="toastIcon"></i>
         <span id="toastMessage"></span>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        // --- PRIVACY TOGGLE ---
-        const SHOW_NAMES = false; // Toggle to 'true' to show names in tooltips and reports again
+        // --- UI & THEME TOGGLES ---
+        let currentViewMode = 'combined'; 
+
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            updateThemeIcon();
+        }
+
+        function updateThemeIcon() {
+            const isDark = document.documentElement.classList.contains('dark');
+            const icon = document.getElementById('themeIcon');
+            icon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+            lucide.createIcons();
+        }
+
+        // Initialize Theme
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
 
         let localStudents = []; 
         let state = {};
@@ -217,6 +243,7 @@
         const loginError = document.getElementById('loginError');
 
         function checkAuth() {
+            updateThemeIcon();
             const savedPwd = sessionStorage.getItem('aram_pwd');
             if (savedPwd) {
                 passwordInput.value = savedPwd;
@@ -242,7 +269,7 @@
                 
                 if (data.success) {
                     sessionStorage.setItem('aram_pwd', pwd);
-                    localStudents = data.students;
+                    localStudents = data.students.map(s => ({ id: s.id, group: s.group }));
                     localStudents.forEach(s => { state[s.id] = { present: false, reason: '' }; });
                     showApp();
                 } else {
@@ -288,11 +315,10 @@
             matrixInterval = setInterval(draw, 35);
         }
 
-        const bearGrid = document.getElementById('bearGrid');
-        const gummyGrid = document.getElementById('gummyGrid');
         const presentCountEl = document.getElementById('presentCount');
         const missingCountEl = document.getElementById('missingCount');
         const countdownText = document.getElementById('countdownText');
+        const gridContainer = document.getElementById('gridContainer');
 
         function formatTime(seconds) {
             const m = Math.floor(seconds / 60);
@@ -305,7 +331,7 @@
             socket = io();
             
             socket.on('connect', () => {
-                document.getElementById('gridContainer').classList.remove('pointer-events-none', 'opacity-50');
+                gridContainer.classList.remove('pointer-events-none', 'opacity-50');
                 document.getElementById('btnMarkAll').disabled = false;
                 document.getElementById('btnResetAll').disabled = false;
             });
@@ -324,16 +350,23 @@
                 countdownText.innerText = formatTime(seconds);
                 if (seconds <= 30) {
                     countdownText.parentElement.classList.add('bg-red-500');
-                    countdownText.parentElement.classList.remove('bg-white/20');
+                    countdownText.parentElement.classList.remove('bg-white/10', 'dark:bg-black/20');
                 } else {
                     countdownText.parentElement.classList.remove('bg-red-500');
-                    countdownText.parentElement.classList.add('bg-white/20');
+                    countdownText.parentElement.classList.add('bg-white/10', 'dark:bg-black/20');
                 }
             });
 
             socket.on('systemToast', (msg) => {
                 showToast(msg, true);
             });
+        }
+
+        function setViewMode(mode) {
+            currentViewMode = mode;
+            document.getElementById('modeBtnCombined').classList.toggle('active', mode === 'combined');
+            document.getElementById('modeBtnSeparate').classList.toggle('active', mode === 'separate');
+            initGrids();
         }
 
         window.handleCellClick = (id) => {
@@ -367,8 +400,7 @@
 
         function openReasonModal(id) {
             activeModalId = id;
-            const student = localStudents.find(s => s.id === id);
-            document.getElementById('modalTitle').innerText = SHOW_NAMES ? student.name : `Student ${student.id}`;
+            document.getElementById('modalTitle').innerText = `Student ${id}`;
             document.getElementById('reasonInput').value = state[id].reason || '';
             document.getElementById('reasonModal').classList.remove('hidden');
             setTimeout(() => document.getElementById('reasonInput').focus(), 50);
@@ -386,26 +418,62 @@
             closeReasonModal();
         };
 
+        function createStudentCell(student) {
+            const cell = document.createElement('div');
+            cell.id = `cell-${student.id}`;
+            const isPresent = state[student.id]?.present;
+            const colorClass = isPresent ? 'bg-emerald-500 border-emerald-500 shadow-emerald-500/20' : 'bg-red-500 border-red-500 shadow-red-500/20';
+            
+            cell.className = `student-cell relative group w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center rounded-2xl border-2 font-black text-xl cursor-pointer shadow-md select-none ${colorClass} text-white`;
+            cell.onclick = () => handleCellClick(student.id);
+            cell.innerText = student.id;
+            
+            return cell;
+        }
+
         function initGrids() {
-            bearGrid.innerHTML = ''; gummyGrid.innerHTML = '';
-            localStudents.forEach(student => {
-                const cell = document.createElement('div');
-                cell.id = `cell-${student.id}`;
-                cell.className = `student-cell relative group w-12 h-12 flex items-center justify-center rounded-xl border-2 font-bold text-lg cursor-pointer shadow-sm select-none bg-red-500 border-red-500 text-white`;
-                cell.onclick = () => handleCellClick(student.id);
-                cell.innerText = student.id;
-                
-                // Show tooltip only if SHOW_NAMES is true
-                if (SHOW_NAMES) {
-                    const tooltip = document.createElement('div');
-                    tooltip.className = "absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-slate-800 text-white text-xs px-3 py-2 rounded-lg whitespace-nowrap z-10 shadow-lg font-medium pointer-events-none";
-                    tooltip.innerText = student.name;
-                    cell.appendChild(tooltip);
-                }
-                
-                if (student.group === 'bear') bearGrid.appendChild(cell);
-                else gummyGrid.appendChild(cell);
-            });
+            gridContainer.innerHTML = '';
+            
+            if (currentViewMode === 'combined') {
+                const wrapper = document.createElement('div');
+                wrapper.className = "flex flex-wrap gap-4 sm:gap-6 justify-center sm:justify-start";
+                const sorted = [...localStudents].sort((a, b) => a.id - b.id);
+                sorted.forEach(student => {
+                    wrapper.appendChild(createStudentCell(student));
+                });
+                gridContainer.appendChild(wrapper);
+            } else {
+                const groups = ['bear', 'gummy'];
+                groups.forEach(groupKey => {
+                    const section = document.createElement('div');
+                    const title = document.createElement('h3');
+                    title.className = "text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-5 flex items-center gap-3";
+                    
+                    const icon = document.createElement('i');
+                    icon.setAttribute('data-lucide', groupKey === 'bear' ? 'paw-print' : 'candy');
+                    icon.className = "w-5 h-5";
+                    
+                    title.appendChild(icon);
+                    title.appendChild(document.createTextNode(` ${groupKey === 'bear' ? 'Bear' : 'Gummy'} Group`));
+                    
+                    const wrapper = document.createElement('div');
+                    wrapper.className = "flex flex-wrap gap-4 sm:gap-6 justify-center sm:justify-start";
+                    
+                    localStudents.filter(s => s.group === groupKey).forEach(student => {
+                        wrapper.appendChild(createStudentCell(student));
+                    });
+                    
+                    section.appendChild(title);
+                    section.appendChild(wrapper);
+                    gridContainer.appendChild(section);
+                    
+                    if (groupKey === 'bear') {
+                        const hr = document.createElement('hr');
+                        hr.className = "border-slate-200 dark:border-slate-800 my-10";
+                        gridContainer.appendChild(hr);
+                    }
+                });
+            }
             updateUI();
         }
 
@@ -413,14 +481,14 @@
             let presentCount = 0; 
             let missingCount = 0;
             localStudents.forEach(student => {
-                const isPresent = state[student.id].present;
+                const isPresent = state[student.id]?.present;
                 const cell = document.getElementById(`cell-${student.id}`);
                 if (cell) {
                     if (isPresent === true) {
-                        cell.className = `student-cell relative group w-12 h-12 flex items-center justify-center rounded-xl border-2 font-bold text-lg cursor-pointer shadow-sm select-none bg-emerald-500 border-emerald-500 text-white`;
+                        cell.className = `student-cell relative group w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center rounded-2xl border-2 font-black text-xl cursor-pointer shadow-md select-none bg-emerald-500 border-emerald-500 text-white shadow-emerald-500/20`;
                         presentCount++;
                     } else { 
-                        cell.className = `student-cell relative group w-12 h-12 flex items-center justify-center rounded-xl border-2 font-bold text-lg cursor-pointer shadow-sm select-none bg-red-500 border-red-500 text-white`;
+                        cell.className = `student-cell relative group w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center rounded-2xl border-2 font-black text-xl cursor-pointer shadow-md select-none bg-red-500 border-red-500 text-white shadow-red-500/20`;
                         missingCount++;
                     }
                 }
@@ -433,7 +501,6 @@
 
         window.generateReport = () => {
             const missing = localStudents.filter(s => state[s.id].present === false);
-            const format = document.querySelector('input[name="outputFormat"]:checked')?.value || 'combined';
             const combWrap = document.getElementById('combinedOutputWrapper');
             const sepWrap = document.getElementById('separateOutputWrapper');
             const outTxt = document.getElementById('outputText');
@@ -443,12 +510,11 @@
             const getList = (arr) => {
                 if (arr.length === 0) return "כולם פה";
                 return arr.map(s => {
-                    const namePart = SHOW_NAMES ? ` ${s.name}` : "";
-                    return `${s.id}${namePart} - ${state[s.id].reason || 'לא ידוע'}`;
-                }).join('\n');
+                    return `${s.id} - ${state[s.id].reason || 'לא ידוע'}`;
+                }).sort((a,b) => parseInt(a) - parseInt(b)).join('\n');
             };
 
-            if (format === 'combined') {
+            if (currentViewMode === 'combined') {
                 combWrap.classList.replace('hidden', 'flex'); sepWrap.classList.replace('flex', 'hidden');
                 outTxt.value = getList(missing);
             } else {
@@ -466,7 +532,7 @@
             el.select();
             el.setSelectionRange(0, 99999); 
             try {
-                document.execCommand('copy') ? showToast("Copied!", true) : showToast("Copy failed", false);
+                document.execCommand('copy') ? showToast("Copied to clipboard!", true) : showToast("Copy failed", false);
             } catch (err) {
                 showToast("Error copying", false);
             }
