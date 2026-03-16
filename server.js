@@ -2,7 +2,8 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
-const fs = require('fs'); // Added filesystem module
+const fs = require('fs');
+const bcrypt = require('bcryptjs'); // Added for secure password hashing
 
 const app = express();
 const server = http.createServer(app);
@@ -10,7 +11,7 @@ const io = new Server(server);
 
 // Middleware
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.json()); // Allow server to read JSON bodies for login
+app.use(express.json());
 
 // 1. Load sensitive configuration securely
 let config;
@@ -19,20 +20,48 @@ try {
     config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
 } catch (err) {
     console.error("CRITICAL ERROR: Could not find or read config.json");
-    console.error("Please make sure you created config.json in the same folder as server.js");
-    process.exit(1); // Stop server if config is missing
+    process.exit(1);
 }
 
 const studentsData = config.students;
-const APP_PASSWORD = config.password;
+const HASHED_PASSWORD = config.password;
 
-// 2. Secure Login Endpoint
-app.post('/api/login', (req, res) => {
-    if (req.body.password === APP_PASSWORD) {
-        // Only send student names if password is correct
-        res.json({ success: true, students: studentsData });
-    } else {
-        res.status(401).json({ success: false });
+// --- Security Helper ---
+// If you haven't hashed your password yet, this will help you.
+// Compare the HASHED_PASSWORD to see if it's a valid bcrypt hash. 
+// If it's too short, it's probably plain text.
+if (!HASHED_PASSWORD.startsWith('$2a$') && HASHED_PASSWORD.length < 30) {
+    console.log("--- SECURITY WARNING ---");
+    console.log("Your password in config.json is stored in PLAIN TEXT.");
+    console.log("Generating a secure hash for you now...");
+    const salt = bcrypt.genSaltSync(10);
+    const hash = bcrypt.hashSync(HASHED_PASSWORD, salt);
+    console.log("REPLACE your password in config.json with this string:");
+    console.log(hash);
+    console.log("------------------------");
+}
+
+// 2. Secure Login Endpoint (Now using async/await for bcrypt)
+app.post('/api/login', async (req, res) => {
+    try {
+        const userPassword = req.body.password || "";
+        
+        // Compare the provided plain-text password with the stored hash
+        const isMatch = await bcrypt.compare(userPassword, HASHED_PASSWORD);
+
+        if (isMatch) {
+            // STRIP NAMES BEFORE SENDING TO NETWORK
+            const safeStudentsData = studentsData.map(student => ({
+                id: student.id,
+                group: student.group
+            }));
+            res.json({ success: true, students: safeStudentsData });
+        } else {
+            res.status(401).json({ success: false });
+        }
+    } catch (error) {
+        console.error("Login error:", error);
+        res.status(500).json({ success: false });
     }
 });
 
@@ -49,14 +78,10 @@ const TEN_MINUTES = 10 * 60 * 1000;
 
 function resetInactivityTimer() {
     if (inactivityTimer) clearTimeout(inactivityTimer);
-    
-    // Set the new expiration target 10 minutes from now
     timerExpiresAt = Date.now() + TEN_MINUTES;
-    
     inactivityTimer = setTimeout(() => {
-        console.log("Resetting all due to inactivity.");
         for (let id in attendanceState) {
-            attendanceState[id].present = false; // Reset to red (missing)
+            attendanceState[id].present = false;
             attendanceState[id].reason = '';
         }
         io.emit('stateUpdate', attendanceState);
@@ -64,7 +89,6 @@ function resetInactivityTimer() {
     }, TEN_MINUTES);
 }
 
-// Broadcast the exact remaining seconds every second
 setInterval(() => {
     if (timerExpiresAt) {
         const remainingSeconds = Math.max(0, Math.ceil((timerExpiresAt - Date.now()) / 1000));
@@ -72,15 +96,11 @@ setInterval(() => {
     }
 }, 1000);
 
-// Initialize timer on start
 resetInactivityTimer();
 
 // WebSockets
 io.on('connection', (socket) => {
-    // Sync current attendance state
     socket.emit('stateUpdate', attendanceState);
-    
-    // Send immediate timer state
     const remainingSeconds = Math.max(0, Math.ceil((timerExpiresAt - Date.now()) / 1000));
     socket.emit('timerUpdate', remainingSeconds);
 
@@ -89,21 +109,22 @@ io.on('connection', (socket) => {
             attendanceState[id].present = present;
             attendanceState[id].reason = reason;
             io.emit('stateUpdate', attendanceState);
-            resetInactivityTimer(); // Activity detected
+            resetInactivityTimer();
         }
     });
 
     socket.on('markAll', (markAsPresent) => {
-        // Target false (red) if resetting
         const targetState = markAsPresent ? true : false;
         for (let i = 1; i <= studentsData.length; i++) {
             if (attendanceState[i]) {
                 attendanceState[i].present = targetState;
-                attendanceState[i].reason = ''; 
+                attendanceState[id] ? attendanceState[id].reason = '' : null;
+                // Fix for the loop logic
+                if (attendanceState[i]) attendanceState[i].reason = '';
             }
         }
         io.emit('stateUpdate', attendanceState);
-        resetInactivityTimer(); // Activity detected
+        resetInactivityTimer();
     });
 });
 
