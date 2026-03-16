@@ -115,16 +115,15 @@ io.on('connection', (socket) => {
 
     socket.on('markAll', (markAsPresent) => {
         const targetState = markAsPresent ? true : false;
-        for (let i = 1; i <= studentsData.length; i++) {
-            if (attendanceState[i]) {
-                attendanceState[i].present = targetState;
-                attendanceState[id] ? attendanceState[id].reason = '' : null;
-                // Fix for the loop logic
-                if (attendanceState[i]) attendanceState[i].reason = '';
-            }
+        
+        // Safely iterate through all registered student IDs
+        for (let studentId in attendanceState) {
+            attendanceState[studentId].present = targetState;
+            attendanceState[studentId].reason = ''; 
         }
+        
         io.emit('stateUpdate', attendanceState);
-        resetInactivityTimer();
+        resetInactivityTimer(); 
     });
 });
 
