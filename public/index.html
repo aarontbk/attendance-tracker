@@ -180,22 +180,31 @@
                     </div>
 
                     <div id="combinedOutputWrapper" class="flex flex-col mb-4">
-                        <textarea id="outputText" readonly class="w-full min-h-[300px] p-5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-700 dark:text-slate-200 font-mono text-sm resize-none mb-6 focus:outline-none transition-colors" dir="rtl"></textarea>
-                        <button onclick="copyToClipboard('outputText')" class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black flex justify-center items-center gap-3 shadow-lg transition-transform active:scale-95"><i data-lucide="copy" class="w-6 h-6"></i> Copy List</button>
+                        <textarea id="outputText" readonly class="w-full min-h-[250px] p-5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-700 dark:text-slate-200 font-mono text-sm resize-none mb-4 focus:outline-none transition-colors" dir="rtl"></textarea>
+                        <div class="grid grid-cols-2 gap-3 mb-6">
+                            <button onclick="copyToClipboard('outputText')" class="py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black flex justify-center items-center gap-2 shadow-lg transition-transform active:scale-95 text-xs"><i data-lucide="copy" class="w-4 h-4"></i> Copy List</button>
+                            <button onclick="copyAsImage('outputText')" class="py-3 bg-slate-600 hover:bg-slate-700 text-white rounded-2xl font-black flex justify-center items-center gap-2 shadow-lg transition-transform active:scale-95 text-xs"><i data-lucide="image" class="w-4 h-4"></i> Copy Image</button>
+                        </div>
                     </div>
 
                     <div id="separateOutputWrapper" class="hidden flex-col gap-6 mb-4">
                         <div>
                             <div class="flex justify-between items-center mb-2 px-1">
                                 <span class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Bear Group Output</span>
-                                <button onclick="copyToClipboard('outputBear')" class="text-xs text-indigo-600 dark:text-indigo-400 font-bold hover:underline">Copy</button>
+                                <div class="flex gap-3">
+                                    <button onclick="copyToClipboard('outputBear')" class="text-xs text-indigo-600 dark:text-indigo-400 font-bold hover:underline">Copy</button>
+                                    <button onclick="copyAsImage('outputBear')" class="text-xs text-slate-600 dark:text-slate-400 font-bold hover:underline">Image</button>
+                                </div>
                             </div>
                             <textarea id="outputBear" readonly class="w-full min-h-[140px] p-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-700 dark:text-slate-200 font-mono text-xs resize-none focus:outline-none" dir="rtl"></textarea>
                         </div>
                         <div>
                             <div class="flex justify-between items-center mb-2 px-1">
                                 <span class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Gummy Group Output</span>
-                                <button onclick="copyToClipboard('outputGummy')" class="text-xs text-indigo-600 dark:text-indigo-400 font-bold hover:underline">Copy</button>
+                                <div class="flex gap-3">
+                                    <button onclick="copyToClipboard('outputGummy')" class="text-xs text-indigo-600 dark:text-indigo-400 font-bold hover:underline">Copy</button>
+                                    <button onclick="copyAsImage('outputGummy')" class="text-xs text-slate-600 dark:text-slate-400 font-bold hover:underline">Image</button>
+                                </div>
                             </div>
                             <textarea id="outputGummy" readonly class="w-full min-h-[140px] p-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-700 dark:text-slate-200 font-mono text-xs resize-none focus:outline-none" dir="rtl"></textarea>
                         </div>
@@ -283,7 +292,6 @@
                     sessionStorage.setItem('aram_pwd', pwd);
                     localStudents = data.students.map(s => ({ id: s.id, group: s.group }));
                     localStudents.forEach(s => { state[s.id] = { present: false, reason: '' }; });
-                    // Init inputs
                     ['timeCombined', 'timeBear', 'timeGummy'].forEach(id => setCurrentTime(id));
                     showApp();
                 } else {
@@ -480,7 +488,6 @@
         window.generateReport = () => {
             const now = new Date();
             const dateStr = `${now.getDate()}.${now.getMonth() + 1}.${now.getFullYear()}`;
-            
             const combWrap = document.getElementById('combinedOutputWrapper');
             const sepWrap = document.getElementById('separateOutputWrapper');
             const outTxt = document.getElementById('outputText');
@@ -492,14 +499,7 @@
                 const present = studentList.filter(s => state[s.id].present === true).length;
                 const missing = studentList.filter(s => state[s.id].present === false);
                 const missingCount = missing.length;
-                
-                let lines = [
-                    `מצב"ה - ${timeVal || '--:--'} ${dateStr}`,
-                    `מצ"ל: ${total}`,
-                    `מצ"ן: ${present}`,
-                    `חסרים: ${missingCount}`,
-                    `פירוט:`
-                ];
+                let lines = [`מצב"ה - ${timeVal || '--:--'} ${dateStr}`, `מצ"ל: ${total}`, `מצ"ן: ${present}`, `חסרים: ${missingCount}`, `פירוט:`];
                 if (missingCount === 0) lines.push("כולם פה");
                 else missing.sort((a,b) => a.id - b.id).forEach(s => lines.push(`${s.id} - ${state[s.id].reason || 'לא ידוע'}`));
                 lines.push("", `מגיש: ${leaderId || ''}`);
@@ -507,12 +507,10 @@
             };
 
             if (currentViewMode === 'combined') {
-                combWrap.classList.replace('hidden', 'flex'); 
-                sepWrap.classList.replace('flex', 'hidden');
+                combWrap.classList.replace('hidden', 'flex'); sepWrap.classList.replace('flex', 'hidden');
                 outTxt.value = buildReport(localStudents, document.getElementById('leaderCombined').value, document.getElementById('timeCombined').value);
             } else {
-                combWrap.classList.replace('flex', 'hidden'); 
-                sepWrap.classList.replace('hidden', 'flex');
+                combWrap.classList.replace('flex', 'hidden'); sepWrap.classList.replace('hidden', 'flex');
                 outBear.value = buildReport(localStudents.filter(s => s.group === 'bear'), document.getElementById('leaderBear').value, document.getElementById('timeBear').value);
                 outGummy.value = buildReport(localStudents.filter(s => s.group === 'gummy'), document.getElementById('leaderGummy').value, document.getElementById('timeGummy').value);
             }
@@ -521,11 +519,78 @@
         window.copyToClipboard = (id) => {
             const el = document.getElementById(id);
             if (!el) return;
-            el.select();
-            el.setSelectionRange(0, 99999); 
+            el.select(); el.setSelectionRange(0, 99999); 
             try { document.execCommand('copy') ? showToast("Copied to clipboard!", true) : showToast("Copy failed", false); } 
             catch (err) { showToast("Error copying", false); }
             window.getSelection().removeAllRanges();
+        };
+
+        window.copyAsImage = (id) => {
+            const textarea = document.getElementById(id);
+            if (!textarea) return;
+            const text = textarea.value;
+            const lines = text.split('\n');
+            
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const fontSize = 18;
+            const lineHeight = 26;
+            const padding = 40;
+
+            ctx.font = `bold ${fontSize}px sans-serif`;
+            
+            let maxWidth = 0;
+            lines.forEach(line => {
+                const w = ctx.measureText(line).width;
+                if (w > maxWidth) maxWidth = w;
+            });
+
+            canvas.width = maxWidth + (padding * 2);
+            canvas.height = (lines.length * lineHeight) + (padding * 2);
+
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = 'black';
+            ctx.font = `bold ${fontSize}px sans-serif`;
+            ctx.textBaseline = 'top';
+            ctx.textAlign = 'right';
+
+            lines.forEach((line, i) => {
+                ctx.fillText(line, canvas.width - padding, padding + (i * lineHeight));
+            });
+
+            canvas.toBlob(async (blob) => {
+                if (!blob) {
+                    showToast("Error generating image", false);
+                    return;
+                }
+                
+                // Attempt to write to clipboard
+                try {
+                    const item = new ClipboardItem({ 'image/png': blob });
+                    await navigator.clipboard.write([item]);
+                    showToast("Image copied to clipboard!", true);
+                } catch (err) {
+                    console.error('Image Copy Error:', err);
+                    
+                    // FALLBACK: Download the image if clipboard is blocked
+                    try {
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `Attendance_${new Date().toISOString().split('T')[0]}.png`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                        
+                        showToast("Copy blocked. Image downloaded instead!", true);
+                    } catch (downloadErr) {
+                        showToast("Failed to copy or download image.", false);
+                    }
+                }
+            }, 'image/png');
         };
 
         function showToast(msg, isSuccess) {
