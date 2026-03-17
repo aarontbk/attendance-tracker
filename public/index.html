@@ -8,9 +8,7 @@
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = {
-            darkMode: 'class',
-        }
+        tailwind.config = { darkMode: 'class' }
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -40,15 +38,13 @@
     <div id="loginOverlay" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
         <canvas id="matrixCanvas"></canvas>
         <div class="relative bg-white/90 dark:bg-slate-900/90 backdrop-blur-lg w-full max-w-md rounded-2xl shadow-2xl p-8 flex flex-col items-center text-center border border-white/20 dark:border-slate-800">
-            <div class="w-16 h-16 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 rounded-full flex items-center justify-center mb-6 shadow-inner">
-                <i data-lucide="lock" class="w-8 h-8"></i>
-            </div>
+            <div class="w-16 h-16 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 rounded-full flex items-center justify-center mb-6 shadow-inner"><i data-lucide="lock" class="w-8 h-8"></i></div>
             <h2 class="text-2xl font-bold text-slate-800 dark:text-white mb-2">Protected Access</h2>
-            <p class="text-slate-500 dark:text-slate-400 mb-8 text-sm">Please enter the password to access the Attendance Tracker.</p>
+            <p class="text-slate-500 dark:text-slate-400 mb-8 text-sm">Enter password to access Tracker.</p>
             <form id="loginForm" class="w-full space-y-4">
-                <input type="password" id="passwordInput" placeholder="Enter password..." class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-center font-medium dark:text-white">
+                <input type="password" id="passwordInput" placeholder="Enter password..." class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-center font-medium dark:text-white">
                 <button type="submit" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-colors shadow-lg">Login</button>
-                <p id="loginError" class="text-red-500 text-xs font-medium hidden">Incorrect password. Please try again.</p>
+                <p id="loginError" class="text-red-500 text-xs font-medium hidden">Incorrect password.</p>
             </form>
         </div>
     </div>
@@ -61,7 +57,7 @@
                     <h3 id="modalTitle" class="text-lg font-bold text-slate-800 dark:text-white">Student Status</h3>
                     <p class="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase">Missing Reason</p>
                 </div>
-                <button onclick="closeReasonModal()" class="text-slate-400 hover:text-slate-600 dark:bg-slate-800 p-1.5 rounded-lg transition-colors"><i data-lucide="x" class="w-4 h-4"></i></button>
+                <button onclick="closeReasonModal()" class="text-slate-400 hover:text-slate-600 dark:bg-slate-800 p-1.5 rounded-lg"><i data-lucide="x" class="w-4 h-4"></i></button>
             </div>
             <input type="text" id="reasonInput" placeholder="Why are they absent?" class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-red-500 outline-none mb-4 font-medium dark:text-white" onkeypress="if(event.key === 'Enter') saveReason()">
             <button onclick="saveReason()" class="w-full py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-bold transition-colors shadow-md">Confirm Missing</button>
@@ -73,19 +69,11 @@
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div class="flex-1">
                     <div class="flex flex-wrap items-center gap-4">
-                        <h1 class="text-3xl sm:text-4xl font-bold flex items-center gap-3">
-                            <i data-lucide="users" class="w-10 h-10"></i>
-                            Attendance Tracker
-                        </h1>
-                        <div id="statusBadge" class="flex items-center gap-1.5 px-3 py-1 bg-emerald-500 text-white text-xs font-bold rounded-full uppercase tracking-wide shadow-sm">
-                            <span class="w-2 h-2 bg-white rounded-full animate-pulse-fast"></span> Live
-                        </div>
-                        <div class="flex items-center gap-2 px-4 py-2 bg-white/10 dark:bg-black/20 border border-white/20 rounded-2xl shadow-inner">
-                            <i data-lucide="clock" class="w-5 h-5 text-indigo-200"></i>
-                            <span id="countdownText" class="timer-font text-2xl font-bold tracking-tighter text-white">10:00</span>
-                        </div>
+                        <h1 class="text-3xl sm:text-4xl font-bold flex items-center gap-3"><i data-lucide="users" class="w-10 h-10"></i> Attendance Tracker</h1>
+                        <div id="statusBadge" class="flex items-center gap-1.5 px-3 py-1 bg-emerald-500 text-white text-xs font-bold rounded-full uppercase shadow-sm"><span class="w-2 h-2 bg-white rounded-full animate-pulse-fast"></span> Live</div>
+                        <div class="flex items-center gap-2 px-4 py-2 bg-white/10 dark:bg-black/20 border border-white/20 rounded-2xl shadow-inner"><i data-lucide="clock" class="w-5 h-5 text-indigo-200"></i><span id="countdownText" class="timer-font text-2xl font-bold tracking-tighter text-white">10:00</span></div>
                     </div>
-                    <p class="text-indigo-100 mt-4 text-sm font-medium opacity-90">Click to toggle: <span class="bg-red-500 px-2 py-0.5 rounded text-[10px] font-bold mx-1 text-white border border-red-400/30">Red = Missing</span> ➔ <span class="bg-emerald-500 px-2 py-0.5 rounded text-[10px] font-bold mx-1 text-white border border-emerald-400/30">Green = Present</span></p>
+                    <p class="text-indigo-100 mt-4 text-sm font-medium">Click: <span class="bg-red-500 px-2 py-0.5 rounded text-[10px] font-bold mx-1 text-white border border-red-400/30">Red=Missing</span> ➔ <span class="bg-emerald-500 px-2 py-0.5 rounded text-[10px] font-bold mx-1 text-white border border-emerald-400/30">Green=Present</span></p>
                 </div>
                 <div class="flex items-center gap-4 w-full md:w-auto">
                     <div class="flex gap-4 bg-white/10 dark:bg-indigo-800/30 backdrop-blur-md p-4 rounded-2xl flex-1 md:flex-none border border-white/10 shadow-sm">
@@ -98,9 +86,7 @@
                             <div id="missingCount" class="text-3xl font-black">0</div>
                         </div>
                     </div>
-                    <button onclick="toggleTheme()" class="p-3 bg-white/10 dark:bg-slate-800 hover:bg-white/20 dark:hover:bg-slate-700 rounded-2xl transition-all border border-white/10 shadow-sm">
-                        <i id="themeIcon" data-lucide="moon" class="w-7 h-7 text-white"></i>
-                    </button>
+                    <button onclick="toggleTheme()" class="p-3 bg-white/10 dark:bg-slate-800 hover:bg-white/20 dark:hover:bg-slate-700 rounded-2xl transition-all border border-white/10 shadow-sm"><i id="themeIcon" data-lucide="moon" class="w-7 h-7 text-white"></i></button>
                 </div>
             </div>
         </header>
@@ -109,119 +95,83 @@
             <div class="flex-1 flex flex-col gap-10">
                 <div class="w-full bg-red-100/50 dark:bg-red-900/20 border-2 border-red-500/50 rounded-2xl p-5 flex items-center justify-center gap-4 flashing-warning shadow-md backdrop-blur-sm">
                     <i data-lucide="alert-triangle" class="w-8 h-8 text-red-600 dark:text-red-400"></i>
-                    <p class="font-black text-red-700 dark:text-red-400 text-center text-sm sm:text-xl tracking-tight uppercase">Fill only after connecting to Teams meeting!</p>
+                    <p class="font-black text-red-700 dark:text-red-400 text-center text-sm sm:text-xl tracking-tight uppercase">Fill only after connecting to Teams!</p>
                     <i data-lucide="alert-triangle" class="w-8 h-8 text-red-600 dark:text-red-400"></i>
                 </div>
 
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
                     <div class="flex items-center gap-6">
-                        <h2 class="text-2xl font-black text-slate-700 dark:text-slate-300 tracking-tight uppercase">Student Roster</h2>
-                        <div class="flex bg-slate-200/50 dark:bg-slate-800 p-1.5 rounded-xl border border-slate-300/30 dark:border-slate-700 shadow-inner">
-                            <button id="modeBtnCombined" onclick="setViewMode('combined')" class="view-toggle-btn active flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-bold text-slate-500 dark:text-slate-400">
-                                <i data-lucide="list" class="w-4 h-4"></i> Combined
-                            </button>
-                            <button id="modeBtnSeparate" onclick="setViewMode('separate')" class="view-toggle-btn flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-bold text-slate-500 dark:text-slate-400">
-                                <i data-lucide="layout-grid" class="w-4 h-4"></i> Separate
-                            </button>
+                        <h2 class="text-2xl font-black text-slate-700 dark:text-slate-300 tracking-tight uppercase">Roster</h2>
+                        <div class="flex bg-slate-200/50 dark:bg-slate-800 p-1.5 rounded-xl border border-slate-300/30 dark:border-slate-700">
+                            <button id="modeBtnCombined" onclick="setViewMode('combined')" class="view-toggle-btn active flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-bold text-slate-500 dark:text-slate-400"><i data-lucide="list" class="w-4 h-4"></i> Combined</button>
+                            <button id="modeBtnSeparate" onclick="setViewMode('separate')" class="view-toggle-btn flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-bold text-slate-500 dark:text-slate-400"><i data-lucide="layout-grid" class="w-4 h-4"></i> Separate</button>
                         </div>
                     </div>
                     <div class="flex gap-3">
-                        <button onclick="markAll(true)" id="btnMarkAll" disabled class="text-sm px-5 py-2.5 bg-white dark:bg-slate-800 hover:bg-emerald-500 hover:text-white dark:hover:bg-emerald-600 disabled:opacity-50 text-slate-700 dark:text-slate-300 rounded-xl font-bold transition-all border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-2">
-                            <i data-lucide="check-circle" class="w-5 h-5"></i> All Present
-                        </button>
-                        <button onclick="markAll(false)" id="btnResetAll" disabled class="text-sm px-5 py-2.5 bg-white dark:bg-slate-800 hover:bg-red-500 hover:text-white dark:hover:bg-red-600 disabled:opacity-50 text-slate-700 dark:text-slate-300 rounded-xl font-bold transition-all border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-2">
-                            <i data-lucide="alert-circle" class="w-5 h-5"></i> Reset All
-                        </button>
+                        <button onclick="markAll(true)" id="btnMarkAll" disabled class="text-sm px-5 py-2.5 bg-white dark:bg-slate-800 hover:bg-emerald-500 hover:text-white dark:hover:bg-emerald-600 disabled:opacity-50 text-slate-700 dark:text-slate-300 rounded-xl font-bold border dark:border-slate-700 flex items-center gap-2"><i data-lucide="check-circle" class="w-5 h-5"></i> All Present</button>
+                        <button onclick="markAll(false)" id="btnResetAll" disabled class="text-sm px-5 py-2.5 bg-white dark:bg-slate-800 hover:bg-red-500 hover:text-white dark:hover:bg-red-600 disabled:opacity-50 text-slate-700 dark:text-slate-300 rounded-xl font-bold border dark:border-slate-700 flex items-center gap-2"><i data-lucide="alert-circle" class="w-5 h-5"></i> Reset All</button>
                     </div>
                 </div>
-                <div id="gridContainer" class="pointer-events-none opacity-50 transition-opacity duration-300"></div>
+                <div id="gridContainer" class="pointer-events-none opacity-50"></div>
             </div>
 
             <div class="w-full lg:w-96 flex flex-col gap-8">
                 <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 flex flex-col sticky top-8 shadow-xl">
-                    <h2 class="text-xl font-black text-slate-700 dark:text-slate-200 mb-6 flex items-center gap-3">
-                        <i data-lucide="file-text" class="w-6 h-6 text-indigo-500"></i>
-                        Missing List
-                    </h2>
-
-                    <!-- COMBINED CONTROLS -->
+                    <h2 class="text-xl font-black text-slate-700 dark:text-slate-200 mb-6 flex items-center gap-3"><i data-lucide="file-text" class="w-6 h-6 text-indigo-500"></i> Missing List</h2>
                     <div id="combinedControls" class="flex flex-col gap-4 mb-6">
                         <div class="flex flex-col gap-1.5">
-                            <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">זמן (Time)</label>
-                            <div class="flex gap-2">
-                                <input type="text" id="timeCombined" oninput="generateReport()" placeholder="HH:mm" class="flex-1 px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-bold dark:text-white">
-                                <button onclick="setCurrentTime('timeCombined')" class="p-3 bg-slate-200 dark:bg-slate-700 hover:bg-indigo-500 hover:text-white rounded-xl transition-all"><i data-lucide="refresh-cw" class="w-4 h-4"></i></button>
-                            </div>
+                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">זמן (Time)</label>
+                            <div class="flex gap-2"><input type="text" id="timeCombined" oninput="generateReport()" placeholder="HH:mm" class="flex-1 px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-bold dark:text-white"><button onclick="setCurrentTime('timeCombined')" class="p-3 bg-slate-200 dark:bg-slate-700 hover:bg-indigo-500 hover:text-white rounded-xl"><i data-lucide="refresh-cw" class="w-4 h-4"></i></button></div>
                         </div>
-                        <div class="flex flex-col gap-1.5">
-                            <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">מגיש (Leader ID)</label>
-                            <input type="text" id="leaderCombined" oninput="generateReport()" placeholder="ID..." class="px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-bold dark:text-white">
-                        </div>
+                        <div class="flex flex-col gap-1.5"><label class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">מגיש (Leader ID)</label><input type="text" id="leaderCombined" oninput="generateReport()" placeholder="ID..." class="px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-bold dark:text-white"></div>
                     </div>
-
-                    <!-- SEPARATE CONTROLS -->
                     <div id="separateControls" class="hidden flex flex-col gap-6 mb-6">
                         <div class="space-y-4 border-l-2 border-indigo-500 pl-4 py-1">
                             <span class="text-[10px] font-black text-indigo-500 uppercase tracking-widest">Bear Group</span>
-                            <div class="flex gap-2">
-                                <input type="text" id="timeBear" oninput="generateReport()" placeholder="Time..." class="flex-1 px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-xs font-bold dark:text-white">
-                                <button onclick="setCurrentTime('timeBear')" class="p-2 bg-slate-200 dark:bg-slate-700 hover:bg-indigo-500 hover:text-white rounded-lg transition-all"><i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i></button>
-                            </div>
-                            <input type="text" id="leaderBear" oninput="generateReport()" placeholder="Leader ID..." class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-xs font-bold dark:text-white">
+                            <div class="flex gap-2"><input type="text" id="timeBear" oninput="generateReport()" placeholder="Time..." class="flex-1 px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none text-xs font-bold dark:text-white"><button onclick="setCurrentTime('timeBear')" class="p-2 bg-slate-200 dark:bg-slate-700 hover:bg-indigo-500 hover:text-white rounded-lg"><i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i></button></div>
+                            <input type="text" id="leaderBear" oninput="generateReport()" placeholder="Leader ID..." class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold dark:text-white">
                         </div>
                         <div class="space-y-4 border-l-2 border-emerald-500 pl-4 py-1">
                             <span class="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Gummy Group</span>
-                            <div class="flex gap-2">
-                                <input type="text" id="timeGummy" oninput="generateReport()" placeholder="Time..." class="flex-1 px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-xs font-bold dark:text-white">
-                                <button onclick="setCurrentTime('timeGummy')" class="p-2 bg-slate-200 dark:bg-slate-700 hover:bg-indigo-500 hover:text-white rounded-lg transition-all"><i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i></button>
-                            </div>
-                            <input type="text" id="leaderGummy" oninput="generateReport()" placeholder="Leader ID..." class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-xs font-bold dark:text-white">
+                            <div class="flex gap-2"><input type="text" id="timeGummy" oninput="generateReport()" placeholder="Time..." class="flex-1 px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none text-xs font-bold dark:text-white"><button onclick="setCurrentTime('timeGummy')" class="p-2 bg-slate-200 dark:bg-slate-700 hover:bg-indigo-500 hover:text-white rounded-lg"><i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i></button></div>
+                            <input type="text" id="leaderGummy" oninput="generateReport()" placeholder="Leader ID..." class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold dark:text-white">
                         </div>
                     </div>
-
                     <div id="combinedOutputWrapper" class="flex flex-col mb-4">
                         <textarea id="outputText" readonly class="w-full min-h-[250px] p-5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-700 dark:text-slate-200 font-mono text-sm resize-none mb-4 focus:outline-none transition-colors" dir="rtl"></textarea>
-                        <div class="grid grid-cols-2 gap-3 mb-6">
-                            <button onclick="copyToClipboard('outputText')" class="py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black flex justify-center items-center gap-2 shadow-lg transition-transform active:scale-95 text-xs"><i data-lucide="copy" class="w-4 h-4"></i> Copy List</button>
-                            <button onclick="copyAsImage('outputText')" class="py-3 bg-slate-600 hover:bg-slate-700 text-white rounded-2xl font-black flex justify-center items-center gap-2 shadow-lg transition-transform active:scale-95 text-xs"><i data-lucide="image" class="w-4 h-4"></i> Copy Image</button>
-                        </div>
+                        <div class="grid grid-cols-2 gap-3 mb-6"><button onclick="copyToClipboard('outputText')" class="py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black text-xs">Copy List</button><button onclick="copyAsImage('outputText')" class="py-3 bg-slate-600 hover:bg-slate-700 text-white rounded-2xl font-black text-xs">Copy Image</button></div>
                     </div>
-
                     <div id="separateOutputWrapper" class="hidden flex-col gap-6 mb-4">
-                        <div>
-                            <div class="flex justify-between items-center mb-2 px-1">
-                                <span class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Bear Group Output</span>
-                                <div class="flex gap-3">
-                                    <button onclick="copyToClipboard('outputBear')" class="text-xs text-indigo-600 dark:text-indigo-400 font-bold hover:underline">Copy</button>
-                                    <button onclick="copyAsImage('outputBear')" class="text-xs text-slate-600 dark:text-slate-400 font-bold hover:underline">Image</button>
-                                </div>
-                            </div>
-                            <textarea id="outputBear" readonly class="w-full min-h-[140px] p-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-700 dark:text-slate-200 font-mono text-xs resize-none focus:outline-none" dir="rtl"></textarea>
-                        </div>
-                        <div>
-                            <div class="flex justify-between items-center mb-2 px-1">
-                                <span class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Gummy Group Output</span>
-                                <div class="flex gap-3">
-                                    <button onclick="copyToClipboard('outputGummy')" class="text-xs text-indigo-600 dark:text-indigo-400 font-bold hover:underline">Copy</button>
-                                    <button onclick="copyAsImage('outputGummy')" class="text-xs text-slate-600 dark:text-slate-400 font-bold hover:underline">Image</button>
-                                </div>
-                            </div>
-                            <textarea id="outputGummy" readonly class="w-full min-h-[140px] p-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-700 dark:text-slate-200 font-mono text-xs resize-none focus:outline-none" dir="rtl"></textarea>
-                        </div>
+                        <div><div class="flex justify-between items-center mb-2 px-1"><span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Bear Group</span><div class="flex gap-3"><button onclick="copyToClipboard('outputBear')" class="text-xs text-indigo-600 font-bold">Copy</button><button onclick="copyAsImage('outputBear')" class="text-xs text-slate-600 font-bold">Image</button></div></div><textarea id="outputBear" readonly class="w-full min-h-[140px] p-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-700 dark:text-slate-200 font-mono text-xs resize-none focus:outline-none" dir="rtl"></textarea></div>
+                        <div><div class="flex justify-between items-center mb-2 px-1"><span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Gummy Group</span><div class="flex gap-3"><button onclick="copyToClipboard('outputGummy')" class="text-xs text-indigo-600 font-bold">Copy</button><button onclick="copyAsImage('outputGummy')" class="text-xs text-slate-600 font-bold">Image</button></div></div><textarea id="outputGummy" readonly class="w-full min-h-[140px] p-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-700 dark:text-slate-200 font-mono text-xs resize-none focus:outline-none" dir="rtl"></textarea></div>
                     </div>
                 </div>
             </div>
         </div>
     </main>
 
-    <div id="toast" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 px-8 py-4 rounded-3xl shadow-2xl font-bold flex items-center gap-3 hidden z-[200]">
-        <i data-lucide="info" class="w-6 h-6 text-indigo-400 dark:text-indigo-600" id="toastIcon"></i>
-        <span id="toastMessage"></span>
-    </div>
+    <div id="toast" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 px-8 py-4 rounded-3xl shadow-2xl font-bold flex items-center gap-3 hidden z-[200]"><i data-lucide="info" class="w-6 h-6 text-indigo-400 dark:text-indigo-600" id="toastIcon"></i><span id="toastMessage"></span></div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
         let currentViewMode = 'combined'; 
+        let localStudents = []; let state = {}; let socket = null; let matrixInterval = null; let activeModalId = null;
+        
+        // --- MEMORY FIX: LOCAL TICKING ---
+        let serverTimerExpiresAt = null;
+        let localTimerInterval = null;
+
+        function updateLocalTimer() {
+            if (!serverTimerExpiresAt) return;
+            const remainingSeconds = Math.max(0, Math.ceil((serverTimerExpiresAt - Date.now()) / 1000));
+            document.getElementById('countdownText').innerText = formatTime(remainingSeconds);
+            const parent = document.getElementById('countdownText').parentElement;
+            if (remainingSeconds <= 30 && remainingSeconds > 0) {
+                parent.classList.add('bg-red-500'); parent.classList.remove('bg-white/10', 'dark:bg-black/20');
+            } else {
+                parent.classList.remove('bg-red-500'); parent.classList.add('bg-white/10', 'dark:bg-black/20');
+            }
+        }
 
         function toggleTheme() {
             const isDark = document.documentElement.classList.toggle('dark');
@@ -230,25 +180,14 @@
         }
 
         function updateThemeIcon() {
-            const isDark = document.documentElement.contains && document.documentElement.classList.contains('dark');
+            const isDark = document.documentElement.classList.contains('dark');
             const icon = document.getElementById('themeIcon');
-            if(icon) {
-                icon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
-                lucide.createIcons();
-            }
+            if(icon) { icon.setAttribute('data-lucide', isDark ? 'sun' : 'moon'); lucide.createIcons(); }
         }
 
         if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
         }
-
-        let localStudents = []; 
-        let state = {};
-        let socket = null;
-        let matrixInterval = null;
-        let activeModalId = null;
 
         const loginOverlay = document.getElementById('loginOverlay');
         const appContent = document.getElementById('appContent');
@@ -262,20 +201,13 @@
             if (savedPwd) {
                 passwordInput.value = savedPwd;
                 loginForm.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
-            } else {
-                loginOverlay.classList.remove('hidden'); 
-                initMatrix(); 
-            }
+            } else { loginOverlay.classList.remove('hidden'); initMatrix(); }
         }
 
         function setCurrentTime(id) {
             const now = new Date();
             const timeStr = now.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit', hour12: false });
-            const input = document.getElementById(id);
-            if(input) {
-                input.value = timeStr;
-                generateReport();
-            }
+            if(document.getElementById(id)) { document.getElementById(id).value = timeStr; generateReport(); }
         }
 
         loginForm.onsubmit = async (e) => {
@@ -295,36 +227,26 @@
                     ['timeCombined', 'timeBear', 'timeGummy'].forEach(id => setCurrentTime(id));
                     showApp();
                 } else {
-                    loginError.classList.remove('hidden');
-                    passwordInput.value = '';
-                    passwordInput.focus();
-                    sessionStorage.removeItem('aram_pwd');
+                    loginError.classList.remove('hidden'); passwordInput.value = ''; passwordInput.focus(); sessionStorage.removeItem('aram_pwd');
                 }
             } catch (err) { showToast("Connection Error", false); }
         };
 
         function showApp() {
-            loginOverlay.classList.add('hidden');
-            appContent.classList.remove('hidden');
-            if(matrixInterval) clearInterval(matrixInterval);
-            initSocket();
-            initGrids();
+            loginOverlay.classList.add('hidden'); appContent.classList.remove('hidden');
+            if(matrixInterval) clearInterval(matrixInterval); initSocket(); initGrids();
         }
 
         function initMatrix() {
             const canvas = document.getElementById('matrixCanvas');
             const ctx = canvas.getContext('2d');
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
             const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZאבגדהוזחטיכלמנסעפצקרשת@#$%^&*';
-            const fontSize = 16;
-            const columns = canvas.width / fontSize;
+            const fontSize = 16; const columns = canvas.width / fontSize;
             const drops = Array(Math.floor(columns)).fill(1);
             function draw() {
-                ctx.fillStyle = 'rgba(15, 23, 42, 0.08)';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = '#10b981';
-                ctx.font = fontSize + 'px monospace';
+                ctx.fillStyle = 'rgba(15, 23, 42, 0.08)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#10b981'; ctx.font = fontSize + 'px monospace';
                 for(let i = 0; i < drops.length; i++) {
                     const text = chars[Math.floor(Math.random() * chars.length)];
                     ctx.fillText(text, i * fontSize, drops[i] * fontSize);
@@ -335,14 +257,8 @@
             matrixInterval = setInterval(draw, 35);
         }
 
-        const presentCountEl = document.getElementById('presentCount');
-        const missingCountEl = document.getElementById('missingCount');
-        const countdownText = document.getElementById('countdownText');
-        const gridContainer = document.getElementById('gridContainer');
-
         function formatTime(seconds) {
-            const m = Math.floor(seconds / 60);
-            const s = seconds % 60;
+            const m = Math.floor(seconds / 60); const s = seconds % 60;
             return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
         }
 
@@ -350,29 +266,21 @@
             if (socket) return;
             socket = io();
             socket.on('connect', () => {
-                gridContainer.classList.remove('pointer-events-none', 'opacity-50');
-                document.getElementById('btnMarkAll').disabled = false;
-                document.getElementById('btnResetAll').disabled = false;
+                document.getElementById('gridContainer').classList.remove('pointer-events-none', 'opacity-50');
+                document.getElementById('btnMarkAll').disabled = false; document.getElementById('btnResetAll').disabled = false;
             });
             socket.on('stateUpdate', (serverState) => {
-                for (const [id, data] of Object.entries(serverState)) { 
-                    if (state[id]) {
-                        state[id].present = data.present;
-                        state[id].reason = data.reason;
-                    }
-                }
+                for (const [id, data] of Object.entries(serverState)) { if (state[id]) { state[id].present = data.present; state[id].reason = data.reason; } }
                 updateUI();
             });
-            socket.on('timerUpdate', (seconds) => {
-                countdownText.innerText = formatTime(seconds);
-                if (seconds <= 30) {
-                    countdownText.parentElement.classList.add('bg-red-500');
-                    countdownText.parentElement.classList.remove('bg-white/10', 'dark:bg-black/20');
-                } else {
-                    countdownText.parentElement.classList.remove('bg-red-500');
-                    countdownText.parentElement.classList.add('bg-white/10', 'dark:bg-black/20');
-                }
+            
+            // FIX: Listen for single sync timestamp and tick locally
+            socket.on('timerSync', (expireTimestamp) => {
+                serverTimerExpiresAt = expireTimestamp;
+                if (!localTimerInterval) localTimerInterval = setInterval(updateLocalTimer, 1000);
+                updateLocalTimer();
             });
+
             socket.on('systemToast', (msg) => showToast(msg, true));
         }
 
@@ -393,19 +301,16 @@
 
         function updateStudentState(id, isPresent, reasonText) {
             if (state[id]) { state[id].present = isPresent; state[id].reason = reasonText || ''; }
-            updateUI(); 
-            if (socket) socket.emit('updateStudent', { id: id, present: isPresent, reason: reasonText || '' });
+            updateUI(); if (socket) socket.emit('updateStudent', { id, present: isPresent, reason: reasonText || '' });
         }
 
         window.markAll = (markAsPresent) => {
             localStudents.forEach(s => { if (state[s.id]) { state[s.id].present = markAsPresent ? true : false; state[s.id].reason = ''; } });
-            updateUI();
-            if (socket) socket.emit('markAll', markAsPresent);
+            updateUI(); if (socket) socket.emit('markAll', markAsPresent);
         };
 
         function openReasonModal(id) {
-            activeModalId = id;
-            document.getElementById('modalTitle').innerText = `Student ${id}`;
+            activeModalId = id; document.getElementById('modalTitle').innerText = `Student ${id}`;
             document.getElementById('reasonInput').value = state[id].reason || '';
             document.getElementById('reasonModal').classList.remove('hidden');
             setTimeout(() => document.getElementById('reasonInput').focus(), 50);
@@ -415,8 +320,7 @@
 
         window.saveReason = () => {
             if (!activeModalId) return;
-            updateStudentState(activeModalId, false, document.getElementById('reasonInput').value);
-            closeReasonModal();
+            updateStudentState(activeModalId, false, document.getElementById('reasonInput').value); closeReasonModal();
         };
 
         function createStudentCell(student) {
@@ -425,177 +329,98 @@
             const isPresent = state[student.id]?.present;
             const colorClass = isPresent ? 'bg-emerald-500 border-emerald-500 shadow-emerald-500/20' : 'bg-red-500 border-red-500 shadow-red-500/20';
             cell.className = `student-cell relative group w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center rounded-2xl border-2 font-black text-xl cursor-pointer shadow-md select-none ${colorClass} text-white`;
-            cell.onclick = () => handleCellClick(student.id);
-            cell.innerText = student.id;
+            cell.onclick = () => handleCellClick(student.id); cell.innerText = student.id;
             return cell;
         }
 
         function initGrids() {
-            gridContainer.innerHTML = '';
+            const container = document.getElementById('gridContainer');
+            container.innerHTML = '';
             if (currentViewMode === 'combined') {
-                const wrapper = document.createElement('div');
-                wrapper.className = "flex flex-wrap gap-4 sm:gap-6 justify-center sm:justify-start";
+                const wrapper = document.createElement('div'); wrapper.className = "flex flex-wrap gap-4 sm:gap-6 justify-center sm:justify-start";
                 [...localStudents].sort((a, b) => a.id - b.id).forEach(student => wrapper.appendChild(createStudentCell(student)));
-                gridContainer.appendChild(wrapper);
+                container.appendChild(wrapper);
             } else {
                 ['bear', 'gummy'].forEach(groupKey => {
                     const section = document.createElement('div');
-                    const title = document.createElement('h3');
-                    title.className = "text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-5 flex items-center gap-3";
-                    const icon = document.createElement('i');
-                    icon.setAttribute('data-lucide', groupKey === 'bear' ? 'paw-print' : 'candy');
-                    icon.className = "w-5 h-5";
-                    title.appendChild(icon);
-                    title.appendChild(document.createTextNode(` ${groupKey === 'bear' ? 'Bear' : 'Gummy'} Group`));
-                    const wrapper = document.createElement('div');
-                    wrapper.className = "flex flex-wrap gap-4 sm:gap-6 justify-center sm:justify-start";
+                    const title = document.createElement('h3'); title.className = "text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-5 flex items-center gap-3";
+                    const icon = document.createElement('i'); icon.setAttribute('data-lucide', groupKey === 'bear' ? 'paw-print' : 'candy'); icon.className = "w-5 h-5";
+                    title.appendChild(icon); title.appendChild(document.createTextNode(` ${groupKey === 'bear' ? 'Bear' : 'Gummy'} Group`));
+                    const wrapper = document.createElement('div'); wrapper.className = "flex flex-wrap gap-4 sm:gap-6 justify-center sm:justify-start";
                     localStudents.filter(s => s.group === groupKey).forEach(student => wrapper.appendChild(createStudentCell(student)));
-                    section.appendChild(title);
-                    section.appendChild(wrapper);
-                    gridContainer.appendChild(section);
-                    if (groupKey === 'bear') {
-                        const hr = document.createElement('hr');
-                        hr.className = "border-slate-200 dark:border-slate-800 my-10";
-                        gridContainer.appendChild(hr);
-                    }
+                    section.appendChild(title); section.appendChild(wrapper); container.appendChild(section);
+                    if (groupKey === 'bear') { const hr = document.createElement('hr'); hr.className = "border-slate-200 dark:border-slate-800 my-10"; container.appendChild(hr); }
                 });
             }
             updateUI();
         }
 
         function updateUI() {
-            let presentCount = 0; 
-            let missingCount = 0;
+            let presentCount = 0; let missingCount = 0;
             localStudents.forEach(student => {
-                const isPresent = state[student.id]?.present;
-                const cell = document.getElementById(`cell-${student.id}`);
+                const isPresent = state[student.id]?.present; const cell = document.getElementById(`cell-${student.id}`);
                 if (cell) {
-                    if (isPresent === true) {
-                        cell.className = `student-cell relative group w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center rounded-2xl border-2 font-black text-xl cursor-pointer shadow-md select-none bg-emerald-500 border-emerald-500 text-white shadow-emerald-500/20`;
-                        presentCount++;
-                    } else { 
-                        cell.className = `student-cell relative group w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center rounded-2xl border-2 font-black text-xl cursor-pointer shadow-md select-none bg-red-500 border-red-500 text-white shadow-red-500/20`;
-                        missingCount++;
-                    }
+                    if (isPresent) { cell.className = `student-cell relative group w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center rounded-2xl border-2 font-black text-xl cursor-pointer shadow-md select-none bg-emerald-500 border-emerald-500 text-white shadow-emerald-500/20`; presentCount++; }
+                    else { cell.className = `student-cell relative group w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center rounded-2xl border-2 font-black text-xl cursor-pointer shadow-md select-none bg-red-500 border-red-500 text-white shadow-red-500/20`; missingCount++; }
                 }
             });
-            presentCountEl.innerText = presentCount; 
-            missingCountEl.innerText = missingCount;
-            generateReport();
-            lucide.createIcons();
+            document.getElementById('presentCount').innerText = presentCount; document.getElementById('missingCount').innerText = missingCount;
+            generateReport(); lucide.createIcons();
         }
 
         window.generateReport = () => {
-            const now = new Date();
-            const dateStr = `${now.getDate()}.${now.getMonth() + 1}.${now.getFullYear()}`;
-            const combWrap = document.getElementById('combinedOutputWrapper');
-            const sepWrap = document.getElementById('separateOutputWrapper');
-            const outTxt = document.getElementById('outputText');
-            const outBear = document.getElementById('outputBear');
-            const outGummy = document.getElementById('outputGummy');
-
+            const now = new Date(); const dateStr = `${now.getDate()}.${now.getMonth() + 1}.${now.getFullYear()}`;
             const buildReport = (studentList, leaderId, timeVal) => {
-                const total = studentList.length;
-                const present = studentList.filter(s => state[s.id].present === true).length;
-                const missing = studentList.filter(s => state[s.id].present === false);
-                const missingCount = missing.length;
-                let lines = [`מצב"ה - ${timeVal || '--:--'} ${dateStr}`, `מצ"ל: ${total}`, `מצ"ן: ${present}`, `חסרים: ${missingCount}`, `פירוט:`];
-                if (missingCount === 0) lines.push("כולם פה");
+                const total = studentList.length; const present = studentList.filter(s => state[s.id].present).length;
+                const missing = studentList.filter(s => !state[s.id].present);
+                let lines = [`מצב"ה - ${timeVal || '--:--'} ${dateStr}`, `מצ"ל: ${total}`, `מצ"ן: ${present}`, `חסרים: ${missing.length}`, `פירוט:`];
+                if (missing.length === 0) lines.push("כולם פה");
                 else missing.sort((a,b) => a.id - b.id).forEach(s => lines.push(`${s.id} - ${state[s.id].reason || 'לא ידוע'}`));
-                lines.push("", `מגיש: ${leaderId || ''}`);
-                return lines.join('\n');
+                lines.push("", `מגיש: ${leaderId || ''}`); return lines.join('\n');
             };
 
             if (currentViewMode === 'combined') {
-                combWrap.classList.replace('hidden', 'flex'); sepWrap.classList.replace('flex', 'hidden');
-                outTxt.value = buildReport(localStudents, document.getElementById('leaderCombined').value, document.getElementById('timeCombined').value);
+                document.getElementById('combinedOutputWrapper').classList.replace('hidden', 'flex'); 
+                document.getElementById('separateOutputWrapper').classList.replace('flex', 'hidden');
+                document.getElementById('outputText').value = buildReport(localStudents, document.getElementById('leaderCombined').value, document.getElementById('timeCombined').value);
             } else {
-                combWrap.classList.replace('flex', 'hidden'); sepWrap.classList.replace('hidden', 'flex');
-                outBear.value = buildReport(localStudents.filter(s => s.group === 'bear'), document.getElementById('leaderBear').value, document.getElementById('timeBear').value);
-                outGummy.value = buildReport(localStudents.filter(s => s.group === 'gummy'), document.getElementById('leaderGummy').value, document.getElementById('timeGummy').value);
+                document.getElementById('combinedOutputWrapper').classList.replace('flex', 'hidden'); 
+                document.getElementById('separateOutputWrapper').classList.replace('hidden', 'flex');
+                document.getElementById('outputBear').value = buildReport(localStudents.filter(s => s.group === 'bear'), document.getElementById('leaderBear').value, document.getElementById('timeBear').value);
+                document.getElementById('outputGummy').value = buildReport(localStudents.filter(s => s.group === 'gummy'), document.getElementById('leaderGummy').value, document.getElementById('timeGummy').value);
             }
         };
 
         window.copyToClipboard = (id) => {
-            const el = document.getElementById(id);
-            if (!el) return;
+            const el = document.getElementById(id); if (!el) return;
             el.select(); el.setSelectionRange(0, 99999); 
-            try { document.execCommand('copy') ? showToast("Copied to clipboard!", true) : showToast("Copy failed", false); } 
-            catch (err) { showToast("Error copying", false); }
+            try { document.execCommand('copy') ? showToast("Copied!", true) : showToast("Failed", false); } catch (e) { showToast("Error", false); }
             window.getSelection().removeAllRanges();
         };
 
         window.copyAsImage = (id) => {
-            const textarea = document.getElementById(id);
-            if (!textarea) return;
-            const text = textarea.value;
+            const text = document.getElementById(id).value;
             const lines = text.split('\n');
-            
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            const fontSize = 18;
-            const lineHeight = 26;
-            const padding = 40;
-
+            const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
+            const fontSize = 18; const lineHeight = 26; const padding = 40;
             ctx.font = `bold ${fontSize}px sans-serif`;
-            
-            let maxWidth = 0;
-            lines.forEach(line => {
-                const w = ctx.measureText(line).width;
-                if (w > maxWidth) maxWidth = w;
-            });
-
-            canvas.width = maxWidth + (padding * 2);
-            canvas.height = (lines.length * lineHeight) + (padding * 2);
-
-            ctx.fillStyle = 'white';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            ctx.fillStyle = 'black';
-            ctx.font = `bold ${fontSize}px sans-serif`;
-            ctx.textBaseline = 'top';
-            ctx.textAlign = 'right';
-
-            lines.forEach((line, i) => {
-                ctx.fillText(line, canvas.width - padding, padding + (i * lineHeight));
-            });
-
+            let maxWidth = 0; lines.forEach(line => { maxWidth = Math.max(maxWidth, ctx.measureText(line).width); });
+            canvas.width = maxWidth + (padding * 2); canvas.height = (lines.length * lineHeight) + (padding * 2);
+            ctx.fillStyle = 'white'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'black'; ctx.font = `bold ${fontSize}px sans-serif`; ctx.textBaseline = 'top'; ctx.textAlign = 'right';
+            lines.forEach((line, i) => { ctx.fillText(line, canvas.width - padding, padding + (i * lineHeight)); });
             canvas.toBlob(async (blob) => {
-                if (!blob) {
-                    showToast("Error generating image", false);
-                    return;
-                }
-                
-                // Attempt to write to clipboard
+                if (!blob) return;
                 try {
-                    const item = new ClipboardItem({ 'image/png': blob });
-                    await navigator.clipboard.write([item]);
-                    showToast("Image copied to clipboard!", true);
+                    const item = new ClipboardItem({ 'image/png': blob }); await navigator.clipboard.write([item]); showToast("Image Copied!", true);
                 } catch (err) {
-                    console.error('Image Copy Error:', err);
-                    
-                    // FALLBACK: Download the image if clipboard is blocked
-                    try {
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = `Attendance_${new Date().toISOString().split('T')[0]}.png`;
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        URL.revokeObjectURL(url);
-                        
-                        showToast("Copy blocked. Image downloaded instead!", true);
-                    } catch (downloadErr) {
-                        showToast("Failed to copy or download image.", false);
-                    }
+                    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `Attendance.png`; a.click(); showToast("Downloaded!", true);
                 }
             }, 'image/png');
         };
 
         function showToast(msg, isSuccess) {
-            const toast = document.getElementById('toast');
-            document.getElementById('toastMessage').innerText = msg;
+            const toast = document.getElementById('toast'); document.getElementById('toastMessage').innerText = msg;
             toast.classList.remove('hidden'); toast.classList.add('toast-animate');
             setTimeout(() => { toast.classList.add('hidden'); toast.classList.remove('toast-animate'); }, 3000);
         }
