@@ -1,50 +1,151 @@
 # 📊 Attendance Tracker (Real-Time)
 
-A lightweight, high-performance attendance tracking application built with **Node.js** and **Socket.io** for seamless, multi-user coordination during meetings.
+A high-performance attendance tracking application built with **Node.js** and **Socket.IO** for seamless coordination during meetings.
+The system includes a secure backend, a real-time web interface, and an automated Python-based scanner for Microsoft Teams.
 
 ---
 
-## ✨ Features
+## 🚀 Core Features
 
-* **🔄 Real-Time Sync:** Every status change and timer update is broadcasted instantly to all connected clients. No refresh required.
-* **🖱️ 2-State Toggle:** Simple UI logic to manage student presence:
-    * **Red (Missing):** Default state. Tap once to turn Green.
-    * **Green (Present):** Tap once to turn Red and enter a reason.
-* **⏳ 10-Minute Auto-Reset:** To keep data fresh, the board automatically resets all students to "Missing" (Red) if no activity is detected for 10 minutes.
-* **🇮🇱 Hebrew Privacy Reports:** Generates "Missing" lists in Hebrew format, omitting names to ensure privacy while maintaining utility.
+* **Real-Time Synchronization**
+  Instant status and timer updates across all connected clients using WebSockets.
 
----
+* **Automated Teams Integration**
+  Remote Python scanner detects participants via the Windows UI Automation API.
 
-## 🚀 Getting Started
+* **Data Privacy**
+  Complete anonymity — only student IDs and group assignments are stored.
 
-Follow these steps to get your local instance up and running:
+* **Secure Authentication**
+  Password protection using `bcrypt` hashing for both web access and API synchronization.
 
-1. **Prerequisites:** Ensure you have [Node.js](https://nodejs.org/) installed.
-2. **Installation:** Open your terminal in the project folder and run:
-   `npm install express socket.io`
-3. **Running the Server:** Launch the application by running:
-   `node server.js`
-4. **Access:** Open your browser and navigate to:
-   `http://localhost:3000`
+* **Dynamic Reporting**
+  One-click generation of Hebrew-formatted reports and image exports.
+
+* **Inactivity Protection**
+  Automatic session reset after **10 minutes** of inactivity to ensure data freshness.
 
 ---
 
-## 🛠️ Usage Guide
+## 🛠 Installation
 
-| Action | Result |
-| :--- | :--- |
-| **Tap Red Student** | Status changes to **Green** (Present). |
-| **Tap Green Student** | Status changes to **Red** (Missing). A prompt will ask for a **Reason**. |
-| **Sidebar (Right)** | Displays the "Missing List" formatted as: `[ID] - [Reason]`. |
-| **Copy Button** | Instantly saves the formatted Hebrew report to your clipboard. |
+### 1. Prerequisites
+
+* Node.js (v16.0.0 or higher)
+* Python 3.x (for the automated scanner)
+
+---
+
+### 2. Backend Setup
+
+Install required dependencies:
+
+```bash
+npm install express socket.io bcryptjs
+```
+
+---
+
+### 3. Scanner Setup (Client Side)
+
+Install Python dependencies:
+
+```bash
+pip install pywinauto requests
+```
+
+---
+
+## ⚙️ Configuration
+
+Create a `config.json` file in the root directory (do **not** commit this file):
+
+```json
+{
+  "password": "your_secure_password_hash",
+  "students": [
+    { "id": 1, "group": "bear" },
+    { "id": 2, "group": "gummy" }
+  ]
+}
+```
+
+> ⚠️ **Important:**
+> On first run, if a plain-text password is provided, the server will output a secure bcrypt hash in the console.
+> Replace the plain-text password in `config.json` with that hash.
+
+---
+
+## ▶️ Usage Guide
+
+### Running the Server
+
+```bash
+node server.js
+```
+
+Access the interface at:
+👉 http://localhost:3000
+
+---
+
+### 🧑‍🏫 Manual Attendance
+
+* 🔴 **Missing (Red)** → Tap a student ID to mark as **Present (Green)**
+* 🟢 **Present (Green)** → Tap to mark as **Missing (Red)** and enter a reason
+
+---
+
+### 🤖 Automated Scanner
+
+Run:
+
+```bash
+python teams_client_scanner.py
+```
+
+Then:
+
+1. Enter the server URL
+2. Enter the system password
+
+> ✅ Ensure the **"People" pane** in Microsoft Teams is open for accurate detection.
+
+---
+
+## 📄 Reporting
+
+Reports are generated in the following Hebrew format:
+
+```
+מצב"ה - [Time] [Date]
+מצ"ל: [Total]
+מצ"ן: [Present]
+חסרים: [Missing]
+פירוט:
+[ID] - [Reason]
+
+מגיש: [Leader ID]
+```
+
+**Export Options:**
+
+* Copy as raw text
+* Export as clean PNG (white background)
 
 ---
 
 ## ⚠️ Important Notice
 
-> [!IMPORTANT]
-> **FILL ONLY AFTER CONNECTING TO THE TEAMS MEETING!**
-> To ensure the most accurate data, do not begin the tracking process until the session has officially started.
+* Start attendance tracking **only after joining the Teams meeting** for accurate results.
+* The system automatically resets after **10 minutes of inactivity**.
 
 ---
-*Built with ❤️ for efficient team management.*
+
+## 💡 Summary
+
+Built for efficient, real-time team management with a focus on:
+
+* Speed ⚡
+* Privacy 🔒
+* Automation 🤖

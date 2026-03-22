@@ -8,7 +8,9 @@
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = { darkMode: 'class' }
+        tailwind.config = {
+            darkMode: 'class',
+        }
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -71,19 +73,12 @@
                     <div class="flex flex-wrap items-center gap-4">
                         <h1 class="text-3xl sm:text-4xl font-bold flex items-center gap-3"><i data-lucide="users" class="w-10 h-10"></i> Attendance Tracker</h1>
                         <div id="statusBadge" class="flex items-center gap-1.5 px-3 py-1 bg-emerald-500 text-white text-xs font-bold rounded-full uppercase shadow-sm"><span class="w-2 h-2 bg-white rounded-full animate-pulse-fast"></span> Live</div>
-                        
-                        <!-- NEW: Scanner Status Indicator -->
-                        <div id="scannerBadge" class="flex items-center gap-1.5 px-3 py-1 bg-amber-500 text-white text-xs font-bold rounded-full uppercase shadow-sm transition-colors">
-                            <i data-lucide="radar" class="w-3.5 h-3.5"></i>
-                            <span id="scannerText">Waiting for Teams</span>
-                        </div>
-
                         <div class="flex items-center gap-2 px-4 py-2 bg-white/10 dark:bg-black/20 border border-white/20 rounded-2xl shadow-inner"><i data-lucide="clock" class="w-5 h-5 text-indigo-200"></i><span id="countdownText" class="timer-font text-2xl font-bold tracking-tighter text-white">10:00</span></div>
                     </div>
                     <p class="text-indigo-100 mt-4 text-sm font-medium">Click: <span class="bg-red-500 px-2 py-0.5 rounded text-[10px] font-bold mx-1 text-white border border-red-400/30">Red=Missing</span> ➔ <span class="bg-emerald-500 px-2 py-0.5 rounded text-[10px] font-bold mx-1 text-white border border-emerald-400/30">Green=Present</span></p>
                 </div>
-                <div class="flex items-center gap-4 w-full md:w-auto">
-                    <div class="flex gap-4 bg-white/10 dark:bg-indigo-800/30 backdrop-blur-md p-4 rounded-2xl flex-1 md:flex-none border border-white/10 shadow-sm">
+                <div class="flex items-center gap-3 w-full md:w-auto">
+                    <div class="flex gap-4 bg-white/10 dark:bg-indigo-800/30 backdrop-blur-md p-4 rounded-2xl flex-1 md:flex-none border border-white/10 shadow-sm mr-2">
                         <div class="text-center px-6 border-r border-white/20">
                             <div class="text-[10px] text-indigo-200 font-bold uppercase tracking-widest mb-1">Present</div>
                             <div id="presentCount" class="text-3xl font-black">0</div>
@@ -93,13 +88,29 @@
                             <div id="missingCount" class="text-3xl font-black">0</div>
                         </div>
                     </div>
-                    <button onclick="toggleTheme()" class="p-3 bg-white/10 dark:bg-slate-800 hover:bg-white/20 dark:hover:bg-slate-700 rounded-2xl transition-all border border-white/10 shadow-sm"><i id="themeIcon" data-lucide="moon" class="w-7 h-7 text-white"></i></button>
+                    
+                    <!-- NEW: Download Auto Client Button -->
+                    <a href="/teams_attendance_scanner.exe" download title="Download Teams Auto Client (.exe)" class="flex items-center gap-2 p-3 bg-white/10 dark:bg-slate-800 hover:bg-white/20 dark:hover:bg-slate-700 rounded-2xl transition-all border border-white/10 shadow-sm text-white">
+                        <i data-lucide="download" class="w-6 h-6"></i>
+                        <span class="hidden lg:block text-sm font-bold pr-1">Auto Client</span>
+                    </a>
+                    
+                    <!-- Theme Toggle -->
+                    <button onclick="toggleTheme()" class="p-3 bg-white/10 dark:bg-slate-800 hover:bg-white/20 dark:hover:bg-slate-700 rounded-2xl transition-all border border-white/10 shadow-sm">
+                        <i id="themeIcon" data-lucide="moon" class="w-6 h-6 text-white"></i>
+                    </button>
                 </div>
             </div>
         </header>
 
         <div class="px-4 sm:px-8 pb-12 flex flex-col lg:flex-row gap-10">
             <div class="flex-1 flex flex-col gap-10">
+                <div class="w-full bg-red-100/50 dark:bg-red-900/20 border-2 border-red-500/50 rounded-2xl p-5 flex items-center justify-center gap-4 flashing-warning shadow-md backdrop-blur-sm">
+                    <i data-lucide="alert-triangle" class="w-8 h-8 text-red-600 dark:text-red-400"></i>
+                    <p class="font-black text-red-700 dark:text-red-400 text-center text-sm sm:text-xl tracking-tight uppercase">Fill only after connecting to Teams!</p>
+                    <i data-lucide="alert-triangle" class="w-8 h-8 text-red-600 dark:text-red-400"></i>
+                </div>
+
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
                     <div class="flex items-center gap-6">
                         <h2 class="text-2xl font-black text-slate-700 dark:text-slate-300 tracking-tight uppercase">Roster</h2>
@@ -157,7 +168,9 @@
     <script>
         let currentViewMode = 'combined'; 
         let localStudents = []; let state = {}; let socket = null; let matrixInterval = null; let activeModalId = null;
-        let serverTimerExpiresAt = null; let localTimerInterval = null;
+        
+        let serverTimerExpiresAt = null;
+        let localTimerInterval = null;
 
         function updateLocalTimer() {
             if (!serverTimerExpiresAt) return;
@@ -267,7 +280,6 @@
                 document.getElementById('gridContainer').classList.remove('pointer-events-none', 'opacity-50');
                 document.getElementById('btnMarkAll').disabled = false; document.getElementById('btnResetAll').disabled = false;
             });
-            
             socket.on('stateUpdate', (serverState) => {
                 for (const [id, data] of Object.entries(serverState)) { if (state[id]) { state[id].present = data.present; state[id].reason = data.reason; } }
                 updateUI();
@@ -277,22 +289,6 @@
                 serverTimerExpiresAt = expireTimestamp;
                 if (!localTimerInterval) localTimerInterval = setInterval(updateLocalTimer, 1000);
                 updateLocalTimer();
-            });
-
-            // NEW: Listen for the auto-scanner status
-            socket.on('scannerStatus', (statusObj) => {
-                const badge = document.getElementById('scannerBadge');
-                const text = document.getElementById('scannerText');
-                
-                text.innerText = statusObj.message || "Unknown";
-                
-                // Reset colors
-                badge.className = "flex items-center gap-1.5 px-3 py-1 text-white text-xs font-bold rounded-full uppercase shadow-sm transition-colors ";
-                
-                if (statusObj.status === 'scanning') badge.classList.add('bg-indigo-500');
-                else if (statusObj.status === 'waiting') badge.classList.add('bg-amber-500');
-                else if (statusObj.status === 'error') badge.classList.add('bg-red-500');
-                else badge.classList.add('bg-slate-500');
             });
 
             socket.on('systemToast', (msg) => showToast(msg, true));
