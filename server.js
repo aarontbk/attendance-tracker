@@ -4,14 +4,15 @@ const { Server } = require('socket.io');
 const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcryptjs');
+const { spawn } = require('child_process');
+const readline = require('readline');
 
 const app = express();
 const server = http.createServer(app);
 
-// FIX: Aggressively clean up ghost connections to prevent memory leaks
 const io = new Server(server, {
-    pingTimeout: 10000, // Disconnect if no response in 10s
-    pingInterval: 5000  // Ping every 5s
+    pingTimeout: 10000, 
+    pingInterval: 5000  
 });
 
 app.use(express.static(path.join(__dirname, 'public')));
@@ -29,25 +30,12 @@ try {
 const studentsData = config.students;
 const HASHED_PASSWORD = config.password;
 
-// Security Helper for plain text passwords
-if (!HASHED_PASSWORD.startsWith('$2a$') && HASHED_PASSWORD.length < 30) {
-    console.log("--- SECURITY WARNING ---");
-    console.log("Your password in config.json is stored in PLAIN TEXT.");
-    console.log("Generating a secure hash for you now...");
-    const salt = bcrypt.genSaltSync(10);
-    const hash = bcrypt.hashSync(HASHED_PASSWORD, salt);
-    console.log("REPLACE your password in config.json with this string:");
-    console.log(hash);
-    console.log("------------------------");
-}
-
 app.post('/api/login', async (req, res) => {
     try {
         const userPassword = req.body.password || "";
         const isMatch = await bcrypt.compare(userPassword, HASHED_PASSWORD);
 
         if (isMatch) {
-            // STRIP NAMES: Backend sanitization is the only way to hide data from Inspect tab
             const safeStudentsData = studentsData.map(student => ({
                 id: student.id,
                 group: student.group
@@ -67,18 +55,13 @@ studentsData.forEach(s => {
     attendanceState[s.id] = { present: false, reason: '' };
 });
 
-// --- Memory-Safe Inactivity Timeout Logic ---
 let inactivityTimer;
 let timerExpiresAt; 
 const TEN_MINUTES = 10 * 60 * 1000;
 
 function resetInactivityTimer() {
     if (inactivityTimer) clearTimeout(inactivityTimer);
-    
-    // Set expiration target
     timerExpiresAt = Date.now() + TEN_MINUTES;
-    
-    // FIX: Broadcast the SYNC time once. Let the client do the ticking to save RAM.
     io.emit('timerSync', timerExpiresAt);
     
     inactivityTimer = setTimeout(() => {
@@ -91,14 +74,72 @@ function resetInactivityTimer() {
     }, TEN_MINUTES);
 }
 
-// FIX: Removed the 1-second setInterval loop that was causing memory bloat
-
 resetInactivityTimer();
+
+// --- TEAMS AUTO-SCANNER INTEGRATION ---
+let scannerStatus = { status: "starting", message: "Starting scanner..." };
+
+function startTeamsScanner() {
+    console.log("Starting Python Teams Scanner...");
+    // Spawn the python process
+    const pythonProcess = spawn('python', ['teams_scanner.py']);
+    
+    // Read stdout line by line
+    const rl = readline.createInterface({ input: pythonProcess.stdout });
+    
+    rl.on('line', (line) => {
+        try {
+            const data = JSON.parse(line);
+            scannerStatus = data;
+            
+            // If the scanner successfully found students, update the server state
+            if (data.status === 'scanning' && data.present_ids) {
+                let stateChanged = false;
+                
+                data.present_ids.forEach(studentId => {
+                    // Only update if they were previously marked missing
+                    if (attendanceState[studentId] && attendanceState[studentId].present === false) {
+                        attendanceState[studentId].present = true;
+                        attendanceState[studentId].reason = '';
+                        stateChanged = true;
+                    }
+                });
+                
+                // If anyone new was found, broadcast the update
+                if (stateChanged) {
+                    io.emit('stateUpdate', attendanceState);
+                    resetInactivityTimer();
+                }
+            }
+            
+            // Broadcast the scanner's health status to the UI
+            io.emit('scannerStatus', scannerStatus);
+            
+        } catch (e) {
+            console.error("Could not parse scanner output:", line);
+        }
+    });
+
+    pythonProcess.stderr.on('data', (data) => {
+        console.error(`Scanner Error: ${data}`);
+    });
+
+    pythonProcess.on('close', (code) => {
+        console.log(`Scanner process exited with code ${code}. Restarting in 5s...`);
+        scannerStatus = { status: "error", message: "Scanner offline. Restarting..." };
+        io.emit('scannerStatus', scannerStatus);
+        setTimeout(startTeamsScanner, 5000); // Auto-restart if it crashes
+    });
+}
+
+// Start the scanner in the background
+startTeamsScanner();
+// --------------------------------------
 
 io.on('connection', (socket) => {
     socket.emit('stateUpdate', attendanceState);
-    // Send the current target time to the new connection
     socket.emit('timerSync', timerExpiresAt);
+    socket.emit('scannerStatus', scannerStatus); // Send initial scanner status
 
     socket.on('updateStudent', ({ id, present, reason }) => {
         if (attendanceState[id]) {
