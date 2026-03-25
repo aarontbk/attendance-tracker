@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Attendance Tracker | Real-Time</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📋</text></svg>">
+    <link rel="icon" href="/logo.png" type="image/png">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -12,10 +12,24 @@
             darkMode: 'class',
         }
     </script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@700&family=Heebo:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         body { font-family: 'Inter', sans-serif; }
+        :root { --he-font: "Heebo", "Assistant", "Inter", sans-serif; }
+        /* Hebrew report text uses Heebo for better readability. */
+        #combinedControls { font-family: var(--he-font); }
+        #outputText, #outputBear, #outputGummy { font-family: var(--he-font) !important; }
+        #reasonInput { font-family: var(--he-font) !important; direction: rtl; text-align: right; }
+        body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+        /* Hebrew panel: explicit RTL direction so labels/inputs feel natural. */
+        .rtl-section { direction: rtl; text-align: right; }
+        .rtl-section input { text-align: right; }
+        /* Modern, consistent focus state for keyboard users. */
+        button:focus-visible, input:focus-visible, textarea:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.35);
+        }
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
@@ -37,18 +51,8 @@
 </head>
 <body class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col items-center relative transition-colors duration-300">
 
-    <div id="loginOverlay" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div id="loginOverlay" class="fixed inset-0 z-[100] flex items-center justify-center p-4 hidden">
         <canvas id="matrixCanvas"></canvas>
-        <div class="relative bg-white/90 dark:bg-slate-900/90 backdrop-blur-lg w-full max-w-md rounded-2xl shadow-2xl p-8 flex flex-col items-center text-center border border-white/20 dark:border-slate-800">
-            <div class="w-16 h-16 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 rounded-full flex items-center justify-center mb-6 shadow-inner"><i data-lucide="lock" class="w-8 h-8"></i></div>
-            <h2 class="text-2xl font-bold text-slate-800 dark:text-white mb-2">Protected Access</h2>
-            <p class="text-slate-500 dark:text-slate-400 mb-8 text-sm">Enter password to access Tracker.</p>
-            <form id="loginForm" class="w-full space-y-4">
-                <input type="password" id="passwordInput" placeholder="Enter password..." class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-center font-medium dark:text-white">
-                <button type="submit" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-colors shadow-lg">Login</button>
-                <p id="loginError" class="text-red-500 text-xs font-medium hidden">Incorrect password.</p>
-            </form>
-        </div>
     </div>
 
     <div id="reasonModal" class="fixed inset-0 z-[110] flex items-center justify-center p-4 hidden">
@@ -61,7 +65,7 @@
                 </div>
                 <button onclick="closeReasonModal()" class="text-slate-400 hover:text-slate-600 dark:bg-slate-800 p-1.5 rounded-lg"><i data-lucide="x" class="w-4 h-4"></i></button>
             </div>
-            <input type="text" id="reasonInput" placeholder="Why are they absent?" class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-red-500 outline-none mb-4 font-medium dark:text-white" onkeypress="if(event.key === 'Enter') saveReason()">
+            <input type="text" id="reasonInput" dir="rtl" placeholder="Why are they absent?" class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-red-500 outline-none mb-4 font-medium dark:text-white" onkeypress="if(event.key === 'Enter') saveReason()">
             <button onclick="saveReason()" class="w-full py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-bold transition-colors shadow-md">Confirm Missing</button>
         </div>
     </div>
@@ -71,7 +75,7 @@
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div class="flex-1">
                     <div class="flex flex-wrap items-center gap-4">
-                        <h1 class="text-3xl sm:text-4xl font-bold flex items-center gap-3"><i data-lucide="users" class="w-10 h-10"></i> Attendance Tracker</h1>
+                        <h1 class="text-3xl sm:text-4xl font-bold flex items-center gap-3"><img src="/logo.png" alt="Logo" class="w-10 h-10 object-contain" /> Attendance Tracker</h1>
                         <div id="statusBadge" class="flex items-center gap-1.5 px-3 py-1 bg-emerald-500 text-white text-xs font-bold rounded-full uppercase shadow-sm"><span class="w-2 h-2 bg-white rounded-full animate-pulse-fast"></span> Live</div>
                         <div class="flex items-center gap-2 px-4 py-2 bg-white/10 dark:bg-black/20 border border-white/20 rounded-2xl shadow-inner"><i data-lucide="clock" class="w-5 h-5 text-indigo-200"></i><span id="countdownText" class="timer-font text-2xl font-bold tracking-tighter text-white">10:00</span></div>
                     </div>
@@ -89,13 +93,11 @@
                         </div>
                     </div>
                     
-                    <!-- NEW: Download Auto Client Button -->
-                    <a href="/teams_attendance_scanner.exe" download title="Download Teams Auto Client (.exe)" class="flex items-center gap-2 p-3 bg-white/10 dark:bg-slate-800 hover:bg-white/20 dark:hover:bg-slate-700 rounded-2xl transition-all border border-white/10 shadow-sm text-white">
+                    <a href="/teams_attendance_scanner.py" download title="Download Teams Auto Client (Python script)" class="flex items-center gap-2 p-3 bg-white/10 dark:bg-slate-800 hover:bg-white/20 dark:hover:bg-slate-700 rounded-2xl transition-all border border-white/10 shadow-sm text-white">
                         <i data-lucide="download" class="w-6 h-6"></i>
-                        <span class="hidden lg:block text-sm font-bold pr-1">Auto Client</span>
+                        <span class="hidden lg:block text-sm font-bold pr-1">Auto Client (Python)</span>
                     </a>
                     
-                    <!-- Theme Toggle -->
                     <button onclick="toggleTheme()" class="p-3 bg-white/10 dark:bg-slate-800 hover:bg-white/20 dark:hover:bg-slate-700 rounded-2xl transition-all border border-white/10 shadow-sm">
                         <i id="themeIcon" data-lucide="moon" class="w-6 h-6 text-white"></i>
                     </button>
@@ -112,32 +114,31 @@
                 </div>
 
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
-                    <div class="flex items-center gap-6">
-                        <h2 class="text-2xl font-black text-slate-700 dark:text-slate-300 tracking-tight uppercase">Roster</h2>
-                        <div class="flex bg-slate-200/50 dark:bg-slate-800 p-1.5 rounded-xl border border-slate-300/30 dark:border-slate-700">
-                            <button id="modeBtnCombined" onclick="setViewMode('combined')" class="view-toggle-btn active flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-bold text-slate-500 dark:text-slate-400"><i data-lucide="list" class="w-4 h-4"></i> Combined</button>
-                            <button id="modeBtnSeparate" onclick="setViewMode('separate')" class="view-toggle-btn flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-bold text-slate-500 dark:text-slate-400"><i data-lucide="layout-grid" class="w-4 h-4"></i> Separate</button>
+                    <div class="flex items-center gap-4">
+                        <div class="flex bg-slate-200/50 dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-300/30 dark:border-slate-700">
+                            <button id="modeBtnCombined" onclick="setViewMode('combined')" class="view-toggle-btn active flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-bold text-slate-500 dark:text-slate-400"><i data-lucide="list" class="w-5 h-5"></i> Combined</button>
+                            <button id="modeBtnSeparate" onclick="setViewMode('separate')" class="view-toggle-btn flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-bold text-slate-500 dark:text-slate-400"><i data-lucide="layout-grid" class="w-5 h-5"></i> Separate</button>
                         </div>
                     </div>
                     <div class="flex gap-3">
-                        <button onclick="markAll(true)" id="btnMarkAll" disabled class="text-sm px-5 py-2.5 bg-white dark:bg-slate-800 hover:bg-emerald-500 hover:text-white dark:hover:bg-emerald-600 disabled:opacity-50 text-slate-700 dark:text-slate-300 rounded-xl font-bold border dark:border-slate-700 flex items-center gap-2"><i data-lucide="check-circle" class="w-5 h-5"></i> All Present</button>
-                        <button onclick="markAll(false)" id="btnResetAll" disabled class="text-sm px-5 py-2.5 bg-white dark:bg-slate-800 hover:bg-red-500 hover:text-white dark:hover:bg-red-600 disabled:opacity-50 text-slate-700 dark:text-slate-300 rounded-xl font-bold border dark:border-slate-700 flex items-center gap-2"><i data-lucide="alert-circle" class="w-5 h-5"></i> Reset All</button>
+                        <button onclick="if(confirm('Mark all students as Present?')) markAll(true)" id="btnMarkAll" class="text-base px-6 py-3 bg-white dark:bg-slate-800 hover:bg-emerald-500 hover:text-white dark:hover:bg-emerald-600 text-slate-700 dark:text-slate-300 rounded-2xl font-bold border dark:border-slate-700 flex items-center gap-3 shadow-sm"><i data-lucide="check-circle" class="w-6 h-6"></i> All Present</button>
+                        <button onclick="if(confirm('Reset all students to Missing?')) markAll(false)" id="btnResetAll" class="text-base px-6 py-3 bg-white dark:bg-slate-800 hover:bg-red-500 hover:text-white dark:hover:bg-red-600 text-slate-700 dark:text-slate-300 rounded-2xl font-bold border dark:border-slate-700 flex items-center gap-3 shadow-sm"><i data-lucide="alert-circle" class="w-6 h-6"></i> Reset All</button>
                     </div>
                 </div>
-                <div id="gridContainer" class="pointer-events-none opacity-50"></div>
+                <div id="gridContainer" class=""></div>
             </div>
 
-            <div class="w-full lg:w-96 flex flex-col gap-8">
-                <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 flex flex-col sticky top-8 shadow-xl">
-                    <h2 class="text-xl font-black text-slate-700 dark:text-slate-200 mb-6 flex items-center gap-3"><i data-lucide="file-text" class="w-6 h-6 text-indigo-500"></i> Missing List</h2>
-                    <div id="combinedControls" class="flex flex-col gap-4 mb-6">
+                <div class="w-full lg:w-96 flex flex-col gap-8">
+                <div class="bg-white/80 dark:bg-slate-900/70 rounded-3xl border border-slate-200/70 dark:border-slate-800/70 backdrop-blur p-6 flex flex-col sticky top-8 shadow-xl">
+                    <h2 class="text-xl font-black text-slate-700 dark:text-slate-200 mb-6 flex items-center gap-3"><i data-lucide="file-text" class="text-indigo-500"></i> Missing List</h2>
+                    <div id="combinedControls" dir="rtl" class="rtl-section flex flex-col gap-4 mb-6">
                         <div class="flex flex-col gap-1.5">
                             <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">זמן (Time)</label>
                             <div class="flex gap-2"><input type="text" id="timeCombined" oninput="generateReport()" placeholder="HH:mm" class="flex-1 px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-bold dark:text-white"><button onclick="setCurrentTime('timeCombined')" class="p-3 bg-slate-200 dark:bg-slate-700 hover:bg-indigo-500 hover:text-white rounded-xl"><i data-lucide="refresh-cw" class="w-4 h-4"></i></button></div>
                         </div>
                         <div class="flex flex-col gap-1.5"><label class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">מגיש (Leader ID)</label><input type="text" id="leaderCombined" oninput="generateReport()" placeholder="ID..." class="px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-bold dark:text-white"></div>
                     </div>
-                    <div id="separateControls" class="hidden flex flex-col gap-6 mb-6">
+                    <div id="separateControls" dir="rtl" class="hidden rtl-section flex flex-col gap-6 mb-6">
                         <div class="space-y-4 border-l-2 border-indigo-500 pl-4 py-1">
                             <span class="text-[10px] font-black text-indigo-500 uppercase tracking-widest">Bear Group</span>
                             <div class="flex gap-2"><input type="text" id="timeBear" oninput="generateReport()" placeholder="Time..." class="flex-1 px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none text-xs font-bold dark:text-white"><button onclick="setCurrentTime('timeBear')" class="p-2 bg-slate-200 dark:bg-slate-700 hover:bg-indigo-500 hover:text-white rounded-lg"><i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i></button></div>
@@ -149,13 +150,19 @@
                             <input type="text" id="leaderGummy" oninput="generateReport()" placeholder="Leader ID..." class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold dark:text-white">
                         </div>
                     </div>
+
+                    <div class="flex items-center gap-2 mb-4 px-1">
+                        <input type="checkbox" id="autoUpdateTime" checked class="w-4 h-4 text-indigo-600 bg-slate-200 border-slate-300 rounded focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:ring-offset-slate-800 focus:ring-2 dark:bg-slate-700 dark:border-slate-600 cursor-pointer">
+                        <label for="autoUpdateTime" class="text-xs font-bold text-slate-500 dark:text-slate-400 cursor-pointer select-none">Auto-update time before copying</label>
+                    </div>
+
                     <div id="combinedOutputWrapper" class="flex flex-col mb-4">
-                        <textarea id="outputText" readonly class="w-full min-h-[250px] p-5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-700 dark:text-slate-200 font-mono text-sm resize-none mb-4 focus:outline-none transition-colors" dir="rtl"></textarea>
+                        <textarea id="outputText" readonly class="w-full min-h-[250px] p-5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-700 dark:text-slate-200 text-sm resize-none mb-4 focus:outline-none transition-colors" dir="rtl"></textarea>
                         <div class="grid grid-cols-2 gap-3 mb-6"><button onclick="copyToClipboard('outputText')" class="py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black text-xs">Copy List</button><button onclick="copyAsImage('outputText')" class="py-3 bg-slate-600 hover:bg-slate-700 text-white rounded-2xl font-black text-xs">Copy Image</button></div>
                     </div>
                     <div id="separateOutputWrapper" class="hidden flex-col gap-6 mb-4">
-                        <div><div class="flex justify-between items-center mb-2 px-1"><span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Bear Group</span><div class="flex gap-3"><button onclick="copyToClipboard('outputBear')" class="text-xs text-indigo-600 font-bold">Copy</button><button onclick="copyAsImage('outputBear')" class="text-xs text-slate-600 font-bold">Image</button></div></div><textarea id="outputBear" readonly class="w-full min-h-[140px] p-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-700 dark:text-slate-200 font-mono text-xs resize-none focus:outline-none" dir="rtl"></textarea></div>
-                        <div><div class="flex justify-between items-center mb-2 px-1"><span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Gummy Group</span><div class="flex gap-3"><button onclick="copyToClipboard('outputGummy')" class="text-xs text-indigo-600 font-bold">Copy</button><button onclick="copyAsImage('outputGummy')" class="text-xs text-slate-600 font-bold">Image</button></div></div><textarea id="outputGummy" readonly class="w-full min-h-[140px] p-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-700 dark:text-slate-200 font-mono text-xs resize-none focus:outline-none" dir="rtl"></textarea></div>
+                        <div><div class="flex justify-between items-center mb-2 px-1"><span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Bear Group</span><div class="flex gap-3"><button onclick="copyToClipboard('outputBear')" class="text-xs text-indigo-600 font-bold">Copy</button><button onclick="copyAsImage('outputBear')" class="text-xs text-slate-600 font-bold">Image</button></div></div><textarea id="outputBear" readonly class="w-full min-h-[140px] p-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-700 dark:text-slate-200 text-xs resize-none focus:outline-none" dir="rtl"></textarea></div>
+                        <div><div class="flex justify-between items-center mb-2 px-1"><span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Gummy Group</span><div class="flex gap-3"><button onclick="copyToClipboard('outputGummy')" class="text-xs text-indigo-600 font-bold">Copy</button><button onclick="copyAsImage('outputGummy')" class="text-xs text-slate-600 font-bold">Image</button></div></div><textarea id="outputGummy" readonly class="w-full min-h-[140px] p-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-700 dark:text-slate-200 text-xs resize-none focus:outline-none" dir="rtl"></textarea></div>
                     </div>
                 </div>
             </div>
@@ -167,7 +174,7 @@
     <script src="/socket.io/socket.io.js"></script>
     <script>
         let currentViewMode = 'combined'; 
-        let localStudents = []; let state = {}; let socket = null; let matrixInterval = null; let activeModalId = null;
+        let localStudents = []; let state = {}; let socket = null; let activeModalId = null;
         
         let serverTimerExpiresAt = null;
         let localTimerInterval = null;
@@ -200,72 +207,34 @@
             document.documentElement.classList.add('dark');
         }
 
-        const loginOverlay = document.getElementById('loginOverlay');
         const appContent = document.getElementById('appContent');
-        const loginForm = document.getElementById('loginForm');
-        const passwordInput = document.getElementById('passwordInput');
-        const loginError = document.getElementById('loginError');
 
         function checkAuth() {
             updateThemeIcon();
-            const savedPwd = sessionStorage.getItem('aram_pwd');
-            if (savedPwd) {
-                passwordInput.value = savedPwd;
-                loginForm.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
-            } else { loginOverlay.classList.remove('hidden'); initMatrix(); }
+            autoLogin();
         }
 
-        function setCurrentTime(id) {
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit', hour12: false });
-            if(document.getElementById(id)) { document.getElementById(id).value = timeStr; generateReport(); }
-        }
-
-        loginForm.onsubmit = async (e) => {
-            e.preventDefault();
-            const pwd = passwordInput.value;
+        async function autoLogin() {
             try {
+                // Fetch the student list directly without a password prompt
                 const res = await fetch('/api/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ password: pwd })
+                    body: JSON.stringify({}) 
                 });
                 const data = await res.json();
                 if (data.success) {
-                    sessionStorage.setItem('aram_pwd', pwd);
                     localStudents = data.students.map(s => ({ id: s.id, group: s.group }));
                     localStudents.forEach(s => { state[s.id] = { present: false, reason: '' }; });
                     ['timeCombined', 'timeBear', 'timeGummy'].forEach(id => setCurrentTime(id));
                     showApp();
-                } else {
-                    loginError.classList.remove('hidden'); passwordInput.value = ''; passwordInput.focus(); sessionStorage.removeItem('aram_pwd');
                 }
-            } catch (err) { showToast("Connection Error", false); }
-        };
-
-        function showApp() {
-            loginOverlay.classList.add('hidden'); appContent.classList.remove('hidden');
-            if(matrixInterval) clearInterval(matrixInterval); initSocket(); initGrids();
+            } catch (err) { console.error("Auto login error", err); }
         }
 
-        function initMatrix() {
-            const canvas = document.getElementById('matrixCanvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-            const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZאבגדהוזחטיכלמנסעפצקרשת@#$%^&*';
-            const fontSize = 16; const columns = canvas.width / fontSize;
-            const drops = Array(Math.floor(columns)).fill(1);
-            function draw() {
-                ctx.fillStyle = 'rgba(15, 23, 42, 0.08)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = '#10b981'; ctx.font = fontSize + 'px monospace';
-                for(let i = 0; i < drops.length; i++) {
-                    const text = chars[Math.floor(Math.random() * chars.length)];
-                    ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-                    if(drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
-                    drops[i]++;
-                }
-            }
-            matrixInterval = setInterval(draw, 35);
+        function showApp() {
+            appContent.classList.remove('hidden');
+            initSocket(); initGrids();
         }
 
         function formatTime(seconds) {
@@ -278,7 +247,6 @@
             socket = io();
             socket.on('connect', () => {
                 document.getElementById('gridContainer').classList.remove('pointer-events-none', 'opacity-50');
-                document.getElementById('btnMarkAll').disabled = false; document.getElementById('btnResetAll').disabled = false;
             });
             socket.on('stateUpdate', (serverState) => {
                 for (const [id, data] of Object.entries(serverState)) { if (state[id]) { state[id].present = data.present; state[id].reason = data.reason; } }
@@ -401,7 +369,26 @@
             }
         };
 
+        function setCurrentTime(id) {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit', hour12: false });
+            if(document.getElementById(id)) { document.getElementById(id).value = timeStr; generateReport(); }
+        }
+
+        function checkAutoUpdate() {
+            const autoUpdateEl = document.getElementById('autoUpdateTime');
+            if (autoUpdateEl && autoUpdateEl.checked) {
+                if (currentViewMode === 'combined') {
+                    setCurrentTime('timeCombined');
+                } else {
+                    setCurrentTime('timeBear');
+                    setCurrentTime('timeGummy');
+                }
+            }
+        }
+
         window.copyToClipboard = (id) => {
+            checkAutoUpdate();
             const el = document.getElementById(id); if (!el) return;
             el.select(); el.setSelectionRange(0, 99999); 
             try { document.execCommand('copy') ? showToast("Copied!", true) : showToast("Failed", false); } catch (e) { showToast("Error", false); }
@@ -409,15 +396,17 @@
         };
 
         window.copyAsImage = (id) => {
+            checkAutoUpdate();
             const text = document.getElementById(id).value;
             const lines = text.split('\n');
             const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
             const fontSize = 18; const lineHeight = 26; const padding = 40;
-            ctx.font = `bold ${fontSize}px sans-serif`;
+            ctx.direction = 'rtl';
+            ctx.font = `bold ${fontSize}px "Heebo", sans-serif`;
             let maxWidth = 0; lines.forEach(line => { maxWidth = Math.max(maxWidth, ctx.measureText(line).width); });
             canvas.width = maxWidth + (padding * 2); canvas.height = (lines.length * lineHeight) + (padding * 2);
             ctx.fillStyle = 'white'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = 'black'; ctx.font = `bold ${fontSize}px sans-serif`; ctx.textBaseline = 'top'; ctx.textAlign = 'right';
+            ctx.fillStyle = 'black'; ctx.font = `bold ${fontSize}px "Heebo", sans-serif`; ctx.textBaseline = 'top'; ctx.textAlign = 'right';
             lines.forEach((line, i) => { ctx.fillText(line, canvas.width - padding, padding + (i * lineHeight)); });
             canvas.toBlob(async (blob) => {
                 if (!blob) return;
