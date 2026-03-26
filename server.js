@@ -93,15 +93,7 @@ app.post('/api/sync-scanner', (req, res) => {
             });
         }
 
-        if (Array.isArray(data.left_ids)) {
-            data.left_ids.forEach(studentId => {
-                if (attendanceState[studentId] && attendanceState[studentId].present === true) {
-                    attendanceState[studentId].present = false;
-                    attendanceState[studentId].reason = 'היה פה והלך';
-                    stateChanged = true;
-                }
-            });
-        }
+        // Removed left_ids processing to keep registered users present forever
         
         if (stateChanged) {
             io.emit('stateUpdate', attendanceState);
